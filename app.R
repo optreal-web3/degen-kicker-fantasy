@@ -16,12 +16,11 @@ ui <- fluidPage(
       .header h1 { color: #ffffff; font-size: 2em; margin: 0 auto; max-width: 1500px; }
       .header h1 span { font-weight: bold; font-style: italic; }
       .container { max-width: 1500px; margin: auto; padding: 20px; }
-      .controls { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
-      .how-to-play { background: #2a2a2a; border-radius: 8px; padding: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.3); }
-      .how-to-play button { background: #1976d2; color: #ffffff; border: none; padding: 8px 16px; border-radius: 5px; cursor: pointer; font-size: 0.9em; }
+      .controls { display: flex; align-items: center; margin-bottom: 20px; }
+      .how-to-play { background: #2a2a2a; border-radius: 8px; padding: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.3); width: 150px; margin-left: 10px; }
+      .how-to-play button { background: #1976d2; color: #ffffff; border: none; padding: 8px 16px; border-radius: 5px; cursor: pointer; font-size: 0.9em; width: 100%; }
       .how-to-play button:hover { background: #1565c0; }
       .how-to-play-content { margin-top: 10px; font-size: 0.9em; }
-      .week-selector { margin-right: 20px; }
       .week-selector .selectize-control .selectize-input { background: #2a2a2a; color: #e0e0e0; border: 1px solid #1976d2; border-radius: 5px; padding: 5px; font-size: 0.9em; width: 150px; }
       .panel-row { display: flex; justify-content: space-between; gap: 20px; margin-bottom: 20px; }
       .panel { background: #2a2a2a; border-radius: 10px; padding: 20px; box-shadow: 0 4px 8px rgba(0,0,0,0.3); flex: 1; display: flex; flex-direction: column; justify-content: center; }
@@ -43,7 +42,7 @@ ui <- fluidPage(
   div(class = "container",
     div(class = "controls",
       div(class = "week-selector",
-        pickerInput("week", "Select Week", choices = 1:5, selected = 1, options = list(style = "btn-primary", width = "150px"))
+        pickerInput("week", "2025 Season Week", choices = 1:5, selected = 1, options = list(style = "btn-primary", width = "150px"))
       ),
       div(class = "how-to-play",
         shinyjs::useShinyjs(),
