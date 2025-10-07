@@ -2,6 +2,7 @@ library(shiny)
 library(shinyWidgets)
 library(dplyr)
 library(nflfastR)
+library(shinyjs)
 
 # Load team data for city names
 team_data <- teams_colors_logos
@@ -11,8 +12,8 @@ ui <- fluidPage(
     tags$link(rel = "stylesheet", href = "https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap"),
     tags$style(HTML("
       body { font-family: 'Roboto', sans-serif; background: #121212; color: #e0e0e0; }
-      .header { background: #1e1e1e; padding: 15px; text-align: center; border-bottom: 2px solid #1976d2; margin-bottom: 20px; }
-      .header h1 { color: #ffffff; font-size: 2em; margin: 0; max-width: 1500px; }
+      .header { background: #1e1e1e; padding: 15px; text-align: center; border-bottom: 2px solid #1976d2; margin-bottom: 20px; width: 100vw; }
+      .header h1 { color: #ffffff; font-size: 2em; margin: 0 auto; max-width: 1500px; }
       .header h1 span { font-weight: bold; font-style: italic; }
       .container { max-width: 1500px; margin: auto; padding: 20px; }
       .controls { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
@@ -20,7 +21,7 @@ ui <- fluidPage(
       .how-to-play button { background: #1976d2; color: #ffffff; border: none; padding: 8px 16px; border-radius: 5px; cursor: pointer; font-size: 0.9em; }
       .how-to-play button:hover { background: #1565c0; }
       .how-to-play-content { margin-top: 10px; font-size: 0.9em; }
-      .week-selector { margin-left: 20px; }
+      .week-selector { margin-right: 20px; }
       .week-selector .selectize-control .selectize-input { background: #2a2a2a; color: #e0e0e0; border: 1px solid #1976d2; border-radius: 5px; padding: 5px; font-size: 0.9em; width: 150px; }
       .panel-row { display: flex; justify-content: space-between; gap: 20px; margin-bottom: 20px; }
       .panel { background: #2a2a2a; border-radius: 10px; padding: 20px; box-shadow: 0 4px 8px rgba(0,0,0,0.3); flex: 1; display: flex; flex-direction: column; justify-content: center; }
@@ -41,6 +42,9 @@ ui <- fluidPage(
   ),
   div(class = "container",
     div(class = "controls",
+      div(class = "week-selector",
+        pickerInput("week", "Select Week", choices = 1:5, selected = 1, options = list(style = "btn-primary", width = "150px"))
+      ),
       div(class = "how-to-play",
         shinyjs::useShinyjs(),
         actionButton("toggleHowTo", "How to Play"),
@@ -50,9 +54,6 @@ ui <- fluidPage(
             p("Punters: 0.05 points per punt yard, -0.05 per return yard (net yards), +0.5 per punt inside 20, +1.5 inside 10, -5 for touchbacks, -4 for blocks.")
           )
         )
-      ),
-      div(class = "week-selector",
-        pickerInput("week", "Select Week", choices = 1:5, selected = 1, options = list(style = "btn-primary", width = "150px"))
       )
     ),
     div(class = "leaders-header", "Kicking Leaders"),
