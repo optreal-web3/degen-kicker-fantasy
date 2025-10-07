@@ -17,11 +17,12 @@ ui <- fluidPage(
       .header h1 span { font-weight: bold; font-style: italic; }
       .container { max-width: 1500px; margin: auto; padding: 20px; }
       .controls { display: flex; align-items: center; margin-bottom: 20px; }
-      .how-to-play { background: #2a2a2a; border-radius: 8px; padding: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.3); width: 150px; margin-left: 10px; }
-      .how-to-play button { background: #1976d2; color: #ffffff; border: none; padding: 8px 16px; border-radius: 5px; cursor: pointer; font-size: 0.9em; width: 100%; }
-      .how-to-play button:hover { background: #1565c0; }
+      .how-to-play { background: #2a2a2a; border-radius: 8px; padding: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.3); width: 70%; margin-left: 10px; }
+      .how-to-play h4 { margin: 0; color: #bbdefb; cursor: pointer; font-size: 0.9em; }
+      .how-to-play h4:hover { color: #90caf9; }
       .how-to-play-content { margin-top: 10px; font-size: 0.9em; }
-      .week-selector .selectize-control .selectize-input { background: #2a2a2a; color: #e0e0e0; border: 1px solid #1976d2; border-radius: 5px; padding: 5px; font-size: 0.9em; width: 150px; }
+      .week-selector { width: 30%; }
+      .week-selector .selectize-control .selectize-input { background: #2a2a2a; color: #e0e0e0; border: 1px solid #1976d2; border-radius: 5px; padding: 5px; font-size: 0.9em; width: 100%; }
       .panel-row { display: flex; justify-content: space-between; gap: 20px; margin-bottom: 20px; }
       .panel { background: #2a2a2a; border-radius: 10px; padding: 20px; box-shadow: 0 4px 8px rgba(0,0,0,0.3); flex: 1; display: flex; flex-direction: column; justify-content: center; }
       h3 { color: #bbdefb; font-size: 1.5em; margin-top: 0; text-align: center; }
@@ -42,11 +43,11 @@ ui <- fluidPage(
   div(class = "container",
     div(class = "controls",
       div(class = "week-selector",
-        pickerInput("week", "2025 Season Week", choices = 1:5, selected = 1, options = list(style = "btn-primary", width = "150px"))
+        pickerInput("week", "2025 Season", choices = paste("Week", 1:5), selected = "Week 1", options = list(style = "btn-primary", width = "100%"))
       ),
       div(class = "how-to-play",
         shinyjs::useShinyjs(),
-        actionButton("toggleHowTo", "How to Play"),
+        h4("How to Play", onclick = "Shiny.setInputValue('toggleHowTo', Math.random())"),
         shinyjs::hidden(
           div(id = "howToContent", class = "how-to-play-content",
             p("Kickers: 3 points per FG made, 1 point per XP made."),
@@ -151,7 +152,7 @@ server <- function(input, output) {
   })
 
   compute_stats <- reactive({
-    week_num <- as.integer(input$week)
+    week_num <- as.integer(gsub("Week ", "", input$week))
     # Kicker stats
     fg_data <- pbp() %>% filter(week == week_num & play_type %in% c("field_goal", "extra_point") & !is.na(kick_distance) & kick_distance > 0)
     if (nrow(fg_data) == 0) {
