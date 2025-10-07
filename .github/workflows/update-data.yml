@@ -5,6 +5,7 @@ on:
   workflow_dispatch: # Allows manual trigger
 jobs:
   update-data:
+    permissions: contents: write
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
