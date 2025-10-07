@@ -49,7 +49,7 @@ ui <- fluidPage(
         h4("How to Play", onclick = "Shiny.setInputValue('toggleHowTo', Math.random())"),
         shinyjs::hidden(
           div(id = "howToContent", class = "how-to-play-content",
-            p("Kickers: PAT (+1 made or -1 miss), FG <30 yards (+1 or -4), 30-39 (+2 or -3), 40-49 (+3 or -2), 50-59 (+4 or -1), 60+ (+5 or 0)."),
+            p("Kickers: PAT (+1 made, -1 missed), FG <30 yards (+1 made, -4 missed), 30-39 (+2 made, -3 missed), 40-49 (+3 made, -2 missed), 50-59 (+4 made, -1 missed), 60+ (+5 made, 0 missed)."),
             p("Punters: 0.05 points per punt yard, -0.05 per return yard (net yards), +0.5 per punt inside 20, +1.5 inside 10, -5 for touchbacks, -4 for blocks.")
           )
         )
@@ -158,26 +158,21 @@ server <- function(input, output) {
       kicker_team_stats <- data.frame()
       kicker_details <- data.frame()
     } else {
-      kicker_points_calc <- function(dist, made) {
-        if (made) {
-          if (dist < 30) return(1)
-          if (dist < 40) return(2)
-          if (dist < 50) return(3)
-          if (dist < 60) return(4)
-          return(5)
-        } else {
-          if (dist < 30) return(-4)
-          if (dist < 40) return(-3)
-          if (dist < 50) return(-2)
-          if (dist < 60) return(-1)
-          return(0)
-        }
-      }
-      
       fg_data <- fg_data %>%
         mutate(kick_points = case_when(
-          play_type == "extra_point" ~ ifelse(extra_point_result == "good", 1, -1),
-          play_type == "field_goal" ~ mapply(kicker_points_calc, kick_distance, field_goal_result == "made")
+          play_type == "extra_point" & extra_point_result == "good" ~ 1,
+          play_type == "extra_point" & extra_point_result != "good" ~ -1,
+          play_type == "field_goal" & field_goal_result == "made" & kick_distance < 30 ~ 1,
+          play_type == "field_goal" & field_goal_result != "made" & kick_distance < 30 ~ -4,
+          play_type == "field_goal" & field_goal_result == "made" & kick_distance < 40 ~ 2,
+          play_type == "field_goal" & field_goal_result != "made" & kick_distance < 40 ~ -3,
+          play_type == "field_goal" & field_goal_result == "made" & kick_distance < 50 ~ 3,
+          play_type == "field_goal" & field_goal_result != "made" & kick_distance < 50 ~ -2,
+          play_type == "field_goal" & field_goal_result == "made" & kick_distance < 60 ~ 4,
+          play_type == "field_goal" & field_goal_result != "made" & kick_distance < 60 ~ -1,
+          play_type == "field_goal" & field_goal_result == "made" & kick_distance >= 60 ~ 5,
+          play_type == "field_goal" & field_goal_result != "made" & kick_distance >= 60 ~ 0,
+          TRUE ~ 0
         ))
       
       kicker_team_stats <- fg_data %>%
@@ -195,13 +190,13 @@ server <- function(input, output) {
       kicker_details <- fg_data %>%
         group_by(posteam, kicker_player_name) %>%
         summarise(
-          made_fg = sum(play_type == "field_goal" & field_goal_result == "made"),
+          made FG = sum(play_type == "field_goal" & field_goal_result == "made"),
           missed_fg = sum(play_type == "field_goal" & field_goal_result != "made" & !is.na(field_goal_result)),
           made_xp = sum(play_type == "extra_point" & extra_point_result == "good"),
           missed_xp = sum(play_type == "extra_point" & extra_point_result != "good"),
           dists = list(kick_distance[play_type == "field_goal" & field_goal_result == "made"]),
           kick_points = sum(kick_points, na.rm = TRUE),
-          .groups = 'drop'
+          .groups = "drop"
         ) %>%
         filter(kick_points != 0) %>%
         left_join(team_data %>% select(team_abbr, team_name), by = c("posteam" = "team_abbr")) %>%
