@@ -2,6 +2,7 @@ library(shiny)
 library(shinyWidgets)
 library(dplyr)
 library(nflfastR)
+library(DT)
 
 ui <- fluidPage(
   tags$head(
@@ -13,12 +14,16 @@ ui <- fluidPage(
       h3 { color: #bbdefb; font-size: 1.5em; margin-top: 20px; }
       .panel { background: #1e1e1e; border-radius: 10px; padding: 20px; box-shadow: 0 4px 8px rgba(0,0,0,0.3); margin-bottom: 20px; }
       .shiny-input-container { margin-bottom: 20px; }
-      table { width: 100%; border-collapse: collapse; }
-      th, td { padding: 10px; text-align: left; border-bottom: 1px solid #333; }
-      th { background: #1976d2; color: #ffffff; }
+      .dataTable { background: #212121; border-radius: 5px; overflow: hidden; }
+      .dataTable thead th { background: #1976d2; color: #ffffff; font-weight: 500; padding: 12px; border-bottom: 2px solid #1565c0; }
+      .dataTable tbody td { padding: 12px; border-bottom: 1px solid #333; }
+      .dataTable tbody tr:hover { background: #2c2c2c; }
+      .dataTable tbody tr:nth-child(even) { background: #262626; }
       pre { background: #212121; padding: 15px; border-radius: 5px; color: #e0e0e0; }
       .week-selector { display: flex; justify-content: center; }
       .no-data { color: #ef5350; text-align: center; font-size: 1.2em; }
+      .dt-buttons { margin-bottom: 10px; }
+      .dt-button { background: #1976d2 !important; color: #ffffff !important; border-radius: 5px; padding: 5px 10px; }
     "))
   ),
   div(class = "container",
@@ -30,7 +35,7 @@ ui <- fluidPage(
       h3("Top 3 Kicker Fantasy Points"),
       conditionalPanel(
         condition = "output.topPoints.length > 0",
-        tableOutput("topPoints")
+        DTOutput("topPoints")
       ),
       conditionalPanel(
         condition = "output.topPoints.length == 0",
@@ -41,7 +46,7 @@ ui <- fluidPage(
       h3("Top 3 FG Total Distance"),
       conditionalPanel(
         condition = "output.topDist.length > 0",
-        tableOutput("topDist")
+        DTOutput("topDist")
       ),
       conditionalPanel(
         condition = "output.topDist.length == 0",
@@ -52,7 +57,7 @@ ui <- fluidPage(
       h3("Top 3 Longest FG"),
       conditionalPanel(
         condition = "output.topLong.length > 0",
-        tableOutput("topLong")
+        DTOutput("topLong")
       ),
       conditionalPanel(
         condition = "output.topLong.length == 0",
@@ -74,7 +79,7 @@ ui <- fluidPage(
       h3("Top 3 Total Number of Punts"),
       conditionalPanel(
         condition = "output.topPunts.length > 0",
-        tableOutput("topPunts")
+        DTOutput("topPunts")
       ),
       conditionalPanel(
         condition = "output.topPunts.length == 0",
@@ -85,7 +90,7 @@ ui <- fluidPage(
       h3("Top 3 Total Punt Yardage"),
       conditionalPanel(
         condition = "output.topYardage.length > 0",
-        tableOutput("topYardage")
+        DTOutput("topYardage")
       ),
       conditionalPanel(
         condition = "output.topYardage.length == 0",
@@ -96,7 +101,7 @@ ui <- fluidPage(
       h3("Top 3 Longest Punt"),
       conditionalPanel(
         condition = "output.topLongPunt.length > 0",
-        tableOutput("topLongPunt")
+        DTOutput("topLongPunt")
       ),
       conditionalPanel(
         condition = "output.topLongPunt.length == 0",
@@ -174,19 +179,49 @@ server <- function(input, output) {
     )
   })
 
-  output$topPoints <- renderTable({
+  output$topPoints <- renderDT({
     stats <- compute_stats()$kicker_team_stats
-    stats %>% arrange(desc(fg_points)) %>% head(3) %>% select(posteam, fg_points)
+    datatable(
+      stats %>% arrange(desc(fg_points)) %>% head(3) %>% select(posteam, fg_points),
+      options = list(
+        dom = 't',
+        pageLength = 3,
+        ordering = FALSE,
+        columnDefs = list(list(className = 'dt-center', targets = '_all'))
+      ),
+      class = 'dataTable',
+      colnames = c("Team", "Fantasy Points")
+    )
   })
 
-  output$topDist <- renderTable({
+  output$topDist <- renderDT({
     stats <- compute_stats()$kicker_team_stats
-    stats %>% arrange(desc(total_dist)) %>% head(3) %>% select(posteam, total_dist)
+    datatable(
+      stats %>% arrange(desc(total_dist)) %>% head(3) %>% select(posteam, total_dist),
+      options = list(
+        dom = 't',
+        pageLength = 3,
+        ordering = FALSE,
+        columnDefs = list(list(className = 'dt-center', targets = '_all'))
+      ),
+      class = 'dataTable',
+      colnames = c("Team", "Total Distance (yds)")
+    )
   })
 
-  output$topLong <- renderTable({
+  output$topLong <- renderDT({
     stats <- compute_stats()$kicker_team_stats
-    stats %>% arrange(desc(longest)) %>% head(3) %>% select(posteam, longest)
+    datatable(
+      stats %>% arrange(desc(longest)) %>% head(3) %>% select(posteam, longest),
+      options = list(
+        dom = 't',
+        pageLength = 3,
+        ordering = FALSE,
+        columnDefs = list(list(className = 'dt-center', targets = '_all'))
+      ),
+      class = 'dataTable',
+      colnames = c("Team", "Longest FG (yds)")
+    )
   })
 
   output$details <- renderPrint({
@@ -202,20 +237,50 @@ server <- function(input, output) {
       cat("\n")
     }
   })
-  
-  output$topPunts <- renderTable({
+
+  output$topPunts <- renderDT({
     stats <- compute_stats()$punt_team_stats
-    stats %>% arrange(desc(total_punts)) %>% head(3) %>% select(posteam, total_punts)
+    datatable(
+      stats %>% arrange(desc(total_punts)) %>% head(3) %>% select(posteam, total_punts),
+      options = list(
+        dom = 't',
+        pageLength = 3,
+        ordering = FALSE,
+        columnDefs = list(list(className = 'dt-center', targets = '_all'))
+      ),
+      class = 'dataTable',
+      colnames = c("Team", "Total Punts")
+    )
   })
 
-  output$topYardage <- renderTable({
+  output$topYardage <- renderDT({
     stats <- compute_stats()$punt_team_stats
-    stats %>% arrange(desc(total_yardage)) %>% head(3) %>% select(posteam, total_yardage)
+    datatable(
+      stats %>% arrange(desc(total_yardage)) %>% head(3) %>% select(posteam, total_yardage),
+      options = list(
+        dom = 't',
+        pageLength = 3,
+        ordering = FALSE,
+        columnDefs = list(list(className = 'dt-center', targets = '_all'))
+      ),
+      class = 'dataTable',
+      colnames = c("Team", "Total Yardage (yds)")
+    )
   })
 
-  output$topLongPunt <- renderTable({
+  output$topLongPunt <- renderDT({
     stats <- compute_stats()$punt_team_stats
-    stats %>% arrange(desc(longest_punt)) %>% head(3) %>% select(posteam, longest_punt)
+    datatable(
+      stats %>% arrange(desc(longest_punt)) %>% head(3) %>% select(posteam, longest_punt),
+      options = list(
+        dom = 't',
+        pageLength = 3,
+        ordering = FALSE,
+        columnDefs = list(list(className = 'dt-center', targets = '_all'))
+      ),
+      class = 'dataTable',
+      colnames = c("Team", "Longest Punt (yds)")
+    )
   })
 
   output$puntDetails <- renderPrint({
