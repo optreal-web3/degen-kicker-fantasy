@@ -1,3 +1,4 @@
+javascript
 // Track user interaction for initial sort behavior
 let hasInteracted = false;
 
@@ -208,12 +209,11 @@ function updateUI(data, week) {
         tbody.appendChild(detailRow);
     });
 
-    initialSort();
+    initialSort(); // Moved here to run after data population
 }
 
 // Initialize page
 document.addEventListener('DOMContentLoaded', async function() {
-    initialSort();
     document.querySelectorAll('#leaderboard tbody tr.wallet-row').forEach(row => {
         row.addEventListener('click', () => {
             hasInteracted = true;
