@@ -3,6 +3,9 @@ library(shinyWidgets)
 library(dplyr)
 library(nflfastR)
 
+# Load players once for IDs
+players_df <- load_players()
+
 ui <- fluidPage(
   tags$head(
     tags$link(rel = "stylesheet", href = "https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap"),
@@ -20,102 +23,107 @@ ui <- fluidPage(
       .week-selector { display: flex; justify-content: center; }
       .no-data { color: #ef5350; text-align: center; font-size: 1.2em; }
       .team-logo { width: 40px; height: 40px; vertical-align: middle; margin-right: 10px; }
-      .player-photo { width: 50px; height: 50px; border-radius: 50%; vertical-align: middle; margin-right: 10px; }
+      .player-photo { width: 50px; height: 50px; border-radius: 50%; vertical-align: middle; margin-right: 10px; object-fit: cover; }
+      .player-section { margin-bottom: 15px; padding: 10px; background: #2a2a2a; border-radius: 5px; }
     "))
   ),
   div(class = "container",
-    h1("NFL 2025 Kicker and Punter Stats"),
+    h1("Degen Kicker Fantasy Stats"),
     div(class = "week-selector",
-      pickerInput("week", NULL, choices = 1:5, selected = 1, options = list(`style` = "btn-primary"))
+      pickerInput("week", "Select Week", choices = 1:5, selected = 1, options = list(style = "btn-primary", width = "200px"))
     ),
+    # Kicker sections
     div(class = "panel",
       h3("Top 3 Kicker Fantasy Points"),
       conditionalPanel(
-        condition = "output.topPoints.length > 0",
+        condition = "output.topPoints !== undefined && output.topPoints.length > 0",
         tableOutput("topPoints")
       ),
       conditionalPanel(
-        condition = "output.topPoints.length == 0",
+        condition = "output.topPoints === undefined || output.topPoints.length == 0",
         div(class = "no-data", "No data available for selected week")
       )
     ),
     div(class = "panel",
       h3("Top 3 FG Total Distance"),
       conditionalPanel(
-        condition = "output.topDist.length > 0",
+        condition = "output.topDist !== undefined && output.topDist.length > 0",
         tableOutput("topDist")
       ),
       conditionalPanel(
-        condition = "output.topDist.length == 0",
+        condition = "output.topDist === undefined || output.topDist.length == 0",
         div(class = "no-data", "No data available for selected week")
       )
     ),
     div(class = "panel",
       h3("Top 3 Longest FG"),
       conditionalPanel(
-        condition = "output.topLong.length > 0",
+        condition = "output.topLong !== undefined && output.topLong.length > 0",
         tableOutput("topLong")
       ),
       conditionalPanel(
-        condition = "output.topLong.length == 0",
+        condition = "output.topLong === undefined || output.topLong.length == 0",
         div(class = "no-data", "No data available for selected week")
       )
     ),
     div(class = "panel",
-      h3("Kicker Team Details"),
+      h3("Kicker Details"),
       conditionalPanel(
-        condition = "output.details",
-        uiOutput("details")
+        condition = "output.kickerDetails !== undefined",
+        uiOutput("kickerDetails")
       ),
       conditionalPanel(
-        condition = "!output.details",
-        div(class = "no-data", "No team details available for selected week")
+        condition = "output.kickerDetails === undefined",
+        div(class = "no-data", "No kicker details available")
       )
     ),
+    # Punter sections
     div(class = "panel",
-      h3("Top 3 Total Number of Punts"),
+      h3("Top 3 Total Punts"),
       conditionalPanel(
-        condition = "output.topPunts.length > 0",
+        condition = "output.topPunts !== undefined && output.topPunts.length > 0",
         tableOutput("topPunts")
       ),
       conditionalPanel(
-        condition = "output.topPunts.length == 0",
+        condition = "output.topPunts === undefined || output.topPunts.length == 0",
         div(class = "no-data", "No data available for selected week")
       )
     ),
     div(class = "panel",
-      h3("Top 3 Total Punt Yardage"),
+      h3("Top 3 Punt Yardage"),
       conditionalPanel(
-        condition = "output.topYardage.length > 0",
+        condition = "output.topYardage !== undefined && output.topYardage.length > 0",
         tableOutput("topYardage")
       ),
       conditionalPanel(
-        condition = "output.topYardage.length == 0",
+        condition = "output.topYardage === undefined || output.topYardage.length == 0",
         div(class = "no-data", "No data available for selected week")
       )
     ),
     div(class = "panel",
       h3("Top 3 Longest Punt"),
       conditionalPanel(
-        condition = "output.topLongPunt.length > 0",
+        condition = "output.topLongPunt !== undefined && output.topLongPunt.length > 0",
         tableOutput("topLongPunt")
       ),
       conditionalPanel(
-        condition = "output.topLongPunt.length == 0",
+        condition = "output.topLongPunt === undefined || output.topLongPunt.length == 0",
         div(class = "no-data", "No data available for selected week")
       )
     ),
     div(class = "panel",
-      h3("Punter Team Details"),
+      h3("Punter Details"),
       conditionalPanel(
-        condition = "output.puntDetails",
-        uiOutput("puntDetails")
+        condition = "output.punterDetails !== undefined",
+        uiOutput("punterDetails")
       ),
       conditionalPanel(
-        condition = "!output.puntDetails",
-        div(class = "no-data", "No punter details available for selected week")
+        condition = "output.punterDetails === undefined",
+        div(class = "no-data", "No punter details available")
       )
-    )
+    ),
+    tags$hr(),
+    div(style = "text-align: center; color: #888;", "A QB is only as good as his kicker.")
   )
 )
 
@@ -127,145 +135,252 @@ server <- function(input, output) {
   compute_stats <- reactive({
     week_num <- as.integer(input$week)
     # Kicker stats
-    fg <- pbp() %>% filter(week == week_num & play_type %in% c("field_goal", "extra_point") & kick_distance > 0)
-    if (nrow(fg) == 0) {
+    fg_data <- pbp() %>% filter(week == week_num & play_type %in% c("field_goal", "extra_point") & !is.na(kick_distance) & kick_distance > 0)
+    if (nrow(fg_data) == 0) {
       kicker_team_stats <- data.frame()
-      kickers <- data.frame()
+      kicker_details <- data.frame()
     } else {
-      fg_made <- fg %>% filter((play_type == "field_goal" & field_goal_result == "made") | (play_type == "extra_point" & extra_point_result == "good"))
-      kicker_team_stats <- fg_made %>% group_by(posteam) %>% summarise(
-        fg_points = sum(ifelse(play_type == "field_goal", 3, 1)),
-        total_dist = sum(kick_distance[play_type == "field_goal"]),
-        longest = max(kick_distance[play_type == "field_goal"], na.rm = TRUE),
-        .groups = 'drop'
-      ) %>% filter(fg_points > 0)
-      kickers <- fg %>% group_by(posteam, kicker_player_name) %>% summarise(
-        made_fg = sum(play_type == "field_goal" & field_goal_result == "made"),
-        missed_fg = sum(play_type == "field_goal" & field_goal_result != "made"),
-        made_xp = sum(play_type == "extra_point" & extra_point_result == "good"),
-        missed_xp = sum(play_type == "extra_point" & extra_point_result != "good"),
-        dists = list(kick_distance[play_type == "field_goal" & field_goal_result == "made"]),
-        .groups = 'drop'
+      fg_made <- fg_data %>% filter(
+        (play_type == "field_goal" & field_goal_result == "made") | 
+        (play_type == "extra_point" & extra_point_result == "good")
       )
+      kicker_team_stats <- fg_made %>%
+        group_by(posteam) %>%
+        summarise(
+          fg_points = sum(ifelse(play_type == "field_goal", 3, 1)),
+          total_dist = sum(kick_distance[play_type == "field_goal"], na.rm = TRUE),
+          longest = max(kick_distance[play_type == "field_goal"], na.rm = TRUE),
+          .groups = 'drop'
+        ) %>%
+        filter(fg_points > 0)
+      
+      kicker_details <- fg_data %>%
+        left_join(players_df %>% select(player_display_name, espn_id), by = c("kicker_player_name" = "player_display_name")) %>%
+        group_by(posteam, kicker_player_name, espn_id) %>%
+        summarise(
+          made_fg = sum(play_type == "field_goal" & field_goal_result == "made"),
+          missed_fg = sum(play_type == "field_goal" & field_goal_result != "made" & !is.na(field_goal_result)),
+          made_xp = sum(play_type == "extra_point" & extra_point_result == "good"),
+          missed_xp = sum(play_type == "extra_point" & extra_point_result != "good"),
+          dists = list(kick_distance[play_type == "field_goal" & field_goal_result == "made"]),
+          .groups = 'drop'
+        ) %>%
+        filter(made_fg + made_xp > 0)
     }
     
     # Punter stats
-    punt <- pbp() %>% filter(week == week_num & play_type == "punt" & kick_distance > 0)
-    if (nrow(punt) == 0) {
+    punt_data <- pbp() %>% filter(week == week_num & play_type == "punt" & !is.na(kick_distance) & kick_distance > 0)
+    if (nrow(punt_data) == 0) {
       punt_team_stats <- data.frame()
-      punters <- data.frame()
+      punter_details <- data.frame()
     } else {
-      punt_team_stats <- punt %>% group_by(posteam) %>% summarise(
-        total_punts = n(),
-        total_yardage = sum(kick_distance),
-        longest_punt = max(kick_distance),
-        .groups = 'drop'
-      ) %>% filter(total_punts > 0)
-      punters <- punt %>% group_by(posteam, punter_player_name) %>% summarise(
-        punts = n(),
-        dists = list(kick_distance),
-        .groups = 'drop'
-      )
+      punt_team_stats <- punt_data %>%
+        group_by(posteam) %>%
+        summarise(
+          total_punts = n(),
+          total_yardage = sum(kick_distance),
+          longest_punt = max(kick_distance),
+          .groups = 'drop'
+        ) %>%
+        filter(total_punts > 0)
+      
+      punter_details <- punt_data %>%
+        left_join(players_df %>% select(player_display_name, espn_id), by = c("punter_player_name" = "player_display_name")) %>%
+        group_by(posteam, punter_player_name, espn_id) %>%
+        summarise(
+          punts = n(),
+          dists = list(kick_distance),
+          .groups = 'drop'
+        )
     }
     
     list(
       kicker_team_stats = kicker_team_stats, 
-      kickers = kickers,
+      kicker_details = kicker_details,
       punt_team_stats = punt_team_stats,
-      punters = punters
+      punter_details = punter_details
     )
   })
 
   output$topPoints <- renderTable({
     stats <- compute_stats()$kicker_team_stats
-    stats %>% arrange(desc(fg_points)) %>% head(3) %>% mutate(
-      posteam = paste0('<img src="https://a.espncdn.com/i/teamlogos/nfl/500/', posteam, '.png" class="team-logo"> ', posteam)
-    ) %>% select(posteam, fg_points)
-  }, sanitize.text.function = identity)
+    if (nrow(stats) == 0) return(NULL)
+    stats %>%
+      arrange(desc(fg_points)) %>%
+      head(3) %>%
+      mutate(
+        posteam_display = paste0(
+          '<img src="https://a.espncdn.com/i/teamlogos/nfl/500/', 
+          posteam, 
+          '.png" class="team-logo" onerror="this.style.display=\'none\'"> ', 
+          posteam
+        )
+      ) %>%
+      select(posteam_display, fg_points) %>%
+      `colnames<-`(c("Team", "PTS"))
+  }, sanitize.text.function = function(x) x, escape = FALSE)
 
   output$topDist <- renderTable({
     stats <- compute_stats()$kicker_team_stats
-    stats %>% arrange(desc(total_dist)) %>% head(3) %>% mutate(
-      posteam = paste0('<img src="https://a.espncdn.com/i/teamlogos/nfl/500/', posteam, '.png" class="team-logo"> ', posteam)
-    ) %>% select(posteam, total_dist)
-  }, sanitize.text.function = identity)
+    if (nrow(stats) == 0) return(NULL)
+    stats %>%
+      arrange(desc(total_dist)) %>%
+      head(3) %>%
+      mutate(
+        posteam_display = paste0(
+          '<img src="https://a.espncdn.com/i/teamlogos/nfl/500/', 
+          posteam, 
+          '.png" class="team-logo" onerror="this.style.display=\'none\'"> ', 
+          posteam
+        )
+      ) %>%
+      select(posteam_display, total_dist) %>%
+      `colnames<-`(c("Team", "YDS"))
+  }, sanitize.text.function = function(x) x, escape = FALSE)
 
   output$topLong <- renderTable({
     stats <- compute_stats()$kicker_team_stats
-    stats %>% arrange(desc(longest)) %>% head(3) %>% mutate(
-      posteam = paste0('<img src="https://a.espncdn.com/i/teamlogos/nfl/500/', posteam, '.png" class="team-logo"> ', posteam)
-    ) %>% select(posteam, longest)
-  }, sanitize.text.function = identity)
+    if (nrow(stats) == 0) return(NULL)
+    stats %>%
+      arrange(desc(longest)) %>%
+      head(3) %>%
+      mutate(
+        posteam_display = paste0(
+          '<img src="https://a.espncdn.com/i/teamlogos/nfl/500/', 
+          posteam, 
+          '.png" class="team-logo" onerror="this.style.display=\'none\'"> ', 
+          posteam
+        )
+      ) %>%
+      select(posteam_display, longest) %>%
+      `colnames<-`(c("Team", "LONG"))
+  }, sanitize.text.function = function(x) x, escape = FALSE)
 
-  output$details <- renderUI({
-    kickers <- compute_stats()$kickers
-    if (nrow(kickers) == 0) return(NULL)
-    team_list <- lapply(unique(kickers$posteam), function(team) {
-      team_kickers <- kickers %>% filter(posteam == team)
-      team_content <- lapply(1:nrow(team_kickers), function(i) {
-        k <- team_kickers[i,]
-        player_id <- k$kicker_player_name
-        tags$li(
-          tags$img(src = paste0("https://a.espncdn.com/i/headshots/nfl/players/full/", player_id, ".png"), class = "player-photo", onerror = "this.src='https://a.espncdn.com/i/headshots/nfl/players/full/default.png'"),
-          sprintf("%s: %d FG made (%s), %d FG missed, %d XP made, %d XP missed", 
-                  k$kicker_player_name, k$made_fg, paste(k$dists[[1]], collapse=", "), k$missed_fg, k$made_xp, k$missed_xp)
-        )
-      })
-      list(
-        tags$div(
-          tags$img(src = paste0("https://a.espncdn.com/i/teamlogos/nfl/500/", team, ".png"), class = "team-logo"),
-          tags$strong(team),
-          tags$ul(team_content)
-        )
+  output$kickerDetails <- renderUI({
+    details <- compute_stats()$kicker_details
+    if (nrow(details) == 0) return(NULL)
+    teams <- unique(details$posteam)
+    lapply(teams, function(team) {
+      team_players <- details %>% filter(posteam == team)
+      team_logo <- tags$img(
+        src = paste0("https://a.espncdn.com/i/teamlogos/nfl/500/", team, ".png"), 
+        class = "team-logo",
+        onerror = "this.style.display='none'"
+      )
+      div(
+        class = "player-section",
+        h4(team_logo, strong(team)),
+        lapply(1:nrow(team_players), function(i) {
+          player <- team_players[i,]
+          photo_src <- if (!is.na(player$espn_id) && player$espn_id != "") {
+            paste0("https://a.espncdn.com/i/headshots/nfl/players/full/", player$espn_id, ".png")
+          } else {
+            "https://a.espncdn.com/i/headshots/nfl/players/full/default.png"
+          }
+          tags$p(
+            tags$img(src = photo_src, class = "player-photo", onerror = "this.src='https://a.espncdn.com/i/headshots/nfl/players/full/default.png'"),
+            sprintf(
+              "%s: %d FG made (%s), %d FG missed, %d XP made, %d XP missed",
+              player$kicker_player_name,
+              player$made_fg,
+              paste(player$dists[[1]], collapse = ", "),
+              player$missed_fg,
+              player$made_xp,
+              player$missed_xp
+            )
+          )
+        })
       )
     })
-    tagList(team_list)
   })
 
   output$topPunts <- renderTable({
     stats <- compute_stats()$punt_team_stats
-    stats %>% arrange(desc(total_punts)) %>% head(3) %>% mutate(
-      posteam = paste0('<img src="https://a.espncdn.com/i/teamlogos/nfl/500/', posteam, '.png" class="team-logo"> ', posteam)
-    ) %>% select(posteam, total_punts)
-  }, sanitize.text.function = identity)
+    if (nrow(stats) == 0) return(NULL)
+    stats %>%
+      arrange(desc(total_punts)) %>%
+      head(3) %>%
+      mutate(
+        posteam_display = paste0(
+          '<img src="https://a.espncdn.com/i/teamlogos/nfl/500/', 
+          posteam, 
+          '.png" class="team-logo" onerror="this.style.display=\'none\'"> ', 
+          posteam
+        )
+      ) %>%
+      select(posteam_display, total_punts) %>%
+      `colnames<-`(c("Team", "PUNTS"))
+  }, sanitize.text.function = function(x) x, escape = FALSE)
 
   output$topYardage <- renderTable({
     stats <- compute_stats()$punt_team_stats
-    stats %>% arrange(desc(total_yardage)) %>% head(3) %>% mutate(
-      posteam = paste0('<img src="https://a.espncdn.com/i/teamlogos/nfl/500/', posteam, '.png" class="team-logo"> ', posteam)
-    ) %>% select(posteam, total_yardage)
-  }, sanitize.text.function = identity)
+    if (nrow(stats) == 0) return(NULL)
+    stats %>%
+      arrange(desc(total_yardage)) %>%
+      head(3) %>%
+      mutate(
+        posteam_display = paste0(
+          '<img src="https://a.espncdn.com/i/teamlogos/nfl/500/', 
+          posteam, 
+          '.png" class="team-logo" onerror="this.style.display=\'none\'"> ', 
+          posteam
+        )
+      ) %>%
+      select(posteam_display, total_yardage) %>%
+      `colnames<-`(c("Team", "YDS"))
+  }, sanitize.text.function = function(x) x, escape = FALSE)
 
   output$topLongPunt <- renderTable({
     stats <- compute_stats()$punt_team_stats
-    stats %>% arrange(desc(longest_punt)) %>% head(3) %>% mutate(
-      posteam = paste0('<img src="https://a.espncdn.com/i/teamlogos/nfl/500/', posteam, '.png" class="team-logo"> ', posteam)
-    ) %>% select(posteam, longest_punt)
-  }, sanitize.text.function = identity)
+    if (nrow(stats) == 0) return(NULL)
+    stats %>%
+      arrange(desc(longest_punt)) %>%
+      head(3) %>%
+      mutate(
+        posteam_display = paste0(
+          '<img src="https://a.espncdn.com/i/teamlogos/nfl/500/', 
+          posteam, 
+          '.png" class="team-logo" onerror="this.style.display=\'none\'"> ', 
+          posteam
+        )
+      ) %>%
+      select(posteam_display, longest_punt) %>%
+      `colnames<-`(c("Team", "LONG"))
+  }, sanitize.text.function = function(x) x, escape = FALSE)
 
-  output$puntDetails <- renderUI({
-    punters <- compute_stats()$punters
-    if (nrow(punters) == 0) return(NULL)
-    team_list <- lapply(unique(punters$posteam), function(team) {
-      team_punters <- punters %>% filter(posteam == team)
-      team_content <- lapply(1:nrow(team_punters), function(i) {
-        p <- team_punters[i,]
-        player_id <- p$punter_player_name
-        tags$li(
-          tags$img(src = paste0("https://a.espncdn.com/i/headshots/nfl/players/full/", player_id, ".png"), class = "player-photo", onerror = "this.src='https://a.espncdn.com/i/headshots/nfl/players/full/default.png'"),
-          sprintf("%s: %d punts (%s)", 
-                  p$punter_player_name, p$punts, paste(p$dists[[1]], collapse=", "))
-        )
-      })
-      list(
-        tags$div(
-          tags$img(src = paste0("https://a.espncdn.com/i/teamlogos/nfl/500/", team, ".png"), class = "team-logo"),
-          tags$strong(team),
-          tags$ul(team_content)
-        )
+  output$punterDetails <- renderUI({
+    details <- compute_stats()$punter_details
+    if (nrow(details) == 0) return(NULL)
+    teams <- unique(details$posteam)
+    lapply(teams, function(team) {
+      team_players <- details %>% filter(posteam == team)
+      team_logo <- tags$img(
+        src = paste0("https://a.espncdn.com/i/teamlogos/nfl/500/", team, ".png"), 
+        class = "team-logo",
+        onerror = "this.style.display='none'"
+      )
+      div(
+        class = "player-section",
+        h4(team_logo, strong(team)),
+        lapply(1:nrow(team_players), function(i) {
+          player <- team_players[i,]
+          photo_src <- if (!is.na(player$espn_id) && player$espn_id != "") {
+            paste0("https://a.espncdn.com/i/headshots/nfl/players/full/", player$espn_id, ".png")
+          } else {
+            "https://a.espncdn.com/i/headshots/nfl/players/full/default.png"
+          }
+          tags$p(
+            tags$img(src = photo_src, class = "player-photo", onerror = "this.src='https://a.espncdn.com/i/headshots/nfl/players/full/default.png'"),
+            sprintf(
+              "%s: %d punts (%s yds)",
+              player$punter_player_name,
+              player$punts,
+              paste(player$dists[[1]], collapse = ", ")
+            )
+          )
+        })
       )
     })
-    tagList(team_list)
   })
 }
 
