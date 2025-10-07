@@ -2,6 +2,49 @@ library(shiny)
 library(shinyWidgets)
 library(dplyr)
 library(nflfastR)
+library(DT)
+
+# Team logo mapping (using NFL team abbreviations and logo URLs from ESPN or similar)
+team_logos <- data.frame(
+  posteam = c("ARI", "ATL", "BAL", "BUF", "CAR", "CHI", "CIN", "CLE", "DAL", "DEN", 
+              "DET", "GB", "HOU", "IND", "JAX", "KC", "LAC", "LAR", "LV", "MIA", 
+              "MIN", "NE", "NO", "NYG", "NYJ", "PHI", "PIT", "SEA", "SF", "TB", 
+              "TEN", "WAS"),
+  logo_url = c(
+    "https://a.espncdn.com/i/teamlogos/nfl/500/ari.png",
+    "https://a.espncdn.com/i/teamlogos/nfl/500/atl.png",
+    "https://a.espncdn.com/i/teamlogos/nfl/500/bal.png",
+    "https://a.espncdn.com/i/teamlogos/nfl/500/buf.png",
+    "https://a.espncdn.com/i/teamlogos/nfl/500/car.png",
+    "https://a.espncdn.com/i/teamlogos/nfl/500/chi.png",
+    "https://a.espncdn.com/i/teamlogos/nfl/500/cin.png",
+    "https://a.espncdn.com/i/teamlogos/nfl/500/cle.png",
+    "https://a.espncdn.com/i/teamlogos/nfl/500/dal.png",
+    "https://a.espncdn.com/i/teamlogos/nfl/500/den.png",
+    "https://a.espncdn.com/i/teamlogos/nfl/500/det.png",
+    "https://a.espncdn.com/i/teamlogos/nfl/500/gb.png",
+    "https://a.espncdn.com/i/teamlogos/nfl/500/hou.png",
+    "https://a.espncdn.com/i/teamlogos/nfl/500/ind.png",
+    "https://a.espncdn.com/i/teamlogos/nfl/500/jax.png",
+    "https://a.espncdn.com/i/teamlogos/nfl/500/kc.png",
+    "https://a.espncdn.com/i/teamlogos/nfl/500/lac.png",
+    "https://a.espncdn.com/i/teamlogos/nfl/500/lar.png",
+    "https://a.espncdn.com/i/teamlogos/nfl/500/lv.png",
+    "https://a.espncdn.com/i/teamlogos/nfl/500/mia.png",
+    "https://a.espncdn.com/i/teamlogos/nfl/500/min.png",
+    "https://a.espncdn.com/i/teamlogos/nfl/500/ne.png",
+    "https://a.espncdn.com/i/teamlogos/nfl/500/no.png",
+    "https://a.espncdn.com/i/teamlogos/nfl/500/nyg.png",
+    "https://a.espncdn.com/i/teamlogos/nfl/500/nyj.png",
+    "https://a.espncdn.com/i/teamlogos/nfl/500/phi.png",
+    "https://a.espncdn.com/i/teamlogos/nfl/500/pit.png",
+    "https://a.espncdn.com/i/teamlogos/nfl/500/sea.png",
+    "https://a.espncdn.com/i/teamlogos/nfl/500/sf.png",
+    "https://a.espncdn.com/i/teamlogos/nfl/500/tb.png",
+    "https://a.espncdn.com/i/teamlogos/nfl/500/ten.png",
+    "https://a.espncdn.com/i/teamlogos/nfl/500/was.png"
+  )
+)
 
 ui <- fluidPage(
   tags$head(
@@ -13,12 +56,17 @@ ui <- fluidPage(
       h3 { color: #bbdefb; font-size: 1.5em; margin-top: 20px; }
       .panel { background: #1e1e1e; border-radius: 10px; padding: 20px; box-shadow: 0 4px 8px rgba(0,0,0,0.3); margin-bottom: 20px; }
       .shiny-input-container { margin-bottom: 20px; }
-      table { width: 100%; border-collapse: collapse; }
-      th, td { padding: 10px; text-align: left; border-bottom: 1px solid #333; }
-      th { background: #1976d2; color: #ffffff; }
+      .dataTable { background: #212121; border-radius: 5px; overflow: hidden; }
+      .dataTable thead th { background: #1976d2; color: #ffffff; font-weight: 500; padding: 12px; border-bottom: 2px solid #1565c0; }
+      .dataTable tbody td { padding: 12px; border-bottom: 1px solid #333; }
+      .dataTable tbody tr:hover { background: #2c2c2c; }
+      .dataTable tbody tr:nth-child(even) { background: #262626; }
+      .team-logo { width: 30px; height: 30px; vertical-align: middle; margin-right: 10px; }
       pre { background: #212121; padding: 15px; border-radius: 5px; color: #e0e0e0; }
       .week-selector { display: flex; justify-content: center; }
       .no-data { color: #ef5350; text-align: center; font-size: 1.2em; }
+      .dt-buttons { margin-bottom: 10px; }
+      .dt-button { background: #1976d2 !important; color: #ffffff !important; border-radius: 5px; padding: 5px 10px; }
     "))
   ),
   div(class = "container",
@@ -30,7 +78,7 @@ ui <- fluidPage(
       h3("Top 3 Kicker Fantasy Points"),
       conditionalPanel(
         condition = "output.topPoints.length > 0",
-        tableOutput("topPoints")
+        DTOutput("topPoints")
       ),
       conditionalPanel(
         condition = "output.topPoints.length == 0",
@@ -41,7 +89,7 @@ ui <- fluidPage(
       h3("Top 3 FG Total Distance"),
       conditionalPanel(
         condition = "output.topDist.length > 0",
-        tableOutput("topDist")
+        DTOutput("topDist")
       ),
       conditionalPanel(
         condition = "output.topDist.length == 0",
@@ -52,7 +100,7 @@ ui <- fluidPage(
       h3("Top 3 Longest FG"),
       conditionalPanel(
         condition = "output.topLong.length > 0",
-        tableOutput("topLong")
+        DTOutput("topLong")
       ),
       conditionalPanel(
         condition = "output.topLong.length == 0",
@@ -74,7 +122,7 @@ ui <- fluidPage(
       h3("Top 3 Total Number of Punts"),
       conditionalPanel(
         condition = "output.topPunts.length > 0",
-        tableOutput("topPunts")
+        DTOutput("topPunts")
       ),
       conditionalPanel(
         condition = "output.topPunts.length == 0",
@@ -85,7 +133,7 @@ ui <- fluidPage(
       h3("Top 3 Total Punt Yardage"),
       conditionalPanel(
         condition = "output.topYardage.length > 0",
-        tableOutput("topYardage")
+        DTOutput("topYardage")
       ),
       conditionalPanel(
         condition = "output.topYardage.length == 0",
@@ -96,7 +144,7 @@ ui <- fluidPage(
       h3("Top 3 Longest Punt"),
       conditionalPanel(
         condition = "output.topLongPunt.length > 0",
-        tableOutput("topLongPunt")
+        DTOutput("topLongPunt")
       ),
       conditionalPanel(
         condition = "output.topLongPunt.length == 0",
@@ -136,7 +184,7 @@ server <- function(input, output) {
         total_dist = sum(kick_distance[play_type == "field_goal"]),
         longest = max(kick_distance[play_type == "field_goal"], na.rm = TRUE),
         .groups = 'drop'
-      ) %>% filter(fg_points > 0)
+      ) %>% filter(fg_points > 0) %>% left_join(team_logos, by = "posteam")
       kickers <- fg %>% group_by(posteam, kicker_player_name) %>% summarise(
         made_fg = sum(play_type == "field_goal" & field_goal_result == "made"),
         missed_fg = sum(play_type == "field_goal" & field_goal_result != "made"),
@@ -158,7 +206,7 @@ server <- function(input, output) {
         total_yardage = sum(kick_distance),
         longest_punt = max(kick_distance),
         .groups = 'drop'
-      ) %>% filter(total_punts > 0)
+      ) %>% filter(total_punts > 0) %>% left_join(team_logos, by = "posteam")
       punters <- punt %>% group_by(posteam, punter_player_name) %>% summarise(
         punts = n(),
         dists = list(kick_distance),
@@ -174,19 +222,82 @@ server <- function(input, output) {
     )
   })
 
-  output$topPoints <- renderTable({
+  output$topPoints <- renderDT({
     stats <- compute_stats()$kicker_team_stats
-    stats %>% arrange(desc(fg_points)) %>% head(3) %>% select(posteam, fg_points)
+    datatable(
+      stats %>% arrange(desc(fg_points)) %>% head(3) %>% select(posteam, logo_url, fg_points),
+      options = list(
+        dom = 't',
+        pageLength = 3,
+        ordering = FALSE,
+        columnDefs = list(
+          list(className = 'dt-center', targets = '_all'),
+          list(
+            render = JS(
+              "function(data, type, row) {",
+              "  return type === 'display' && data ? '<img src=\"' + data + '\" class=\"team-logo\" alt=\"Team Logo\" />' : data;",
+              "}"
+            ),
+            targets = 1
+          )
+        )
+      ),
+      class = 'dataTable',
+      colnames = c("Team", "Logo", "Fantasy Points"),
+      escape = FALSE
+    )
   })
 
-  output$topDist <- renderTable({
+  output$topDist <- renderDT({
     stats <- compute_stats()$kicker_team_stats
-    stats %>% arrange(desc(total_dist)) %>% head(3) %>% select(posteam, total_dist)
+    datatable(
+      stats %>% arrange(desc(total_dist)) %>% head(3) %>% select(posteam, logo_url, total_dist),
+      options = list(
+        dom = 't',
+        pageLength = 3,
+        ordering = FALSE,
+        columnDefs = list(
+          list(className = 'dt-center', targets = '_all'),
+          list(
+            render = JS(
+              "function(data, type, row) {",
+              "  return type === 'display' && data ? '<img src=\"' + data + '\" class=\"team-logo\" alt=\"Team Logo\" />' : data;",
+              "}"
+            ),
+            targets = 1
+          )
+        )
+      ),
+      class = 'dataTable',
+      colnames = c("Team", "Logo", "Total Distance (yds)"),
+      escape = FALSE
+    )
   })
 
-  output$topLong <- renderTable({
+  output$topLong <- renderDT({
     stats <- compute_stats()$kicker_team_stats
-    stats %>% arrange(desc(longest)) %>% head(3) %>% select(posteam, longest)
+    datatable(
+      stats %>% arrange(desc(longest)) %>% head(3) %>% select(posteam, logo_url, longest),
+      options = list(
+        dom = 't',
+        pageLength = 3,
+        ordering = FALSE,
+        columnDefs = list(
+          list(className = 'dt-center', targets = '_all'),
+          list(
+            render = JS(
+              "function(data, type, row) {",
+              "  return type === 'display' && data ? '<img src=\"' + data + '\" class=\"team-logo\" alt=\"Team Logo\" />' : data;",
+              "}"
+            ),
+            targets = 1
+          )
+        )
+      ),
+      class = 'dataTable',
+      colnames = c("Team", "Logo", "Longest FG (yds)"),
+      escape = FALSE
+    )
   })
 
   output$details <- renderPrint({
@@ -202,20 +313,83 @@ server <- function(input, output) {
       cat("\n")
     }
   })
-  
-  output$topPunts <- renderTable({
+
+  output$topPunts <- renderDT({
     stats <- compute_stats()$punt_team_stats
-    stats %>% arrange(desc(total_punts)) %>% head(3) %>% select(posteam, total_punts)
+    datatable(
+      stats %>% arrange(desc(total_punts)) %>% head(3) %>% select(posteam, logo_url, total_punts),
+      options = list(
+        dom = 't',
+        pageLength = 3,
+        ordering = FALSE,
+        columnDefs = list(
+          list(className = 'dt-center', targets = '_all'),
+          list(
+            render = JS(
+              "function(data, type, row) {",
+              "  return type === 'display' && data ? '<img src=\"' + data + '\" class=\"team-logo\" alt=\"Team Logo\" />' : data;",
+              "}"
+            ),
+            targets = 1
+          )
+        )
+      ),
+      class = 'dataTable',
+      colnames = c("Team", "Logo", "Total Punts"),
+      escape = FALSE
+    )
   })
 
-  output$topYardage <- renderTable({
+  output$topYardage <- renderDT({
     stats <- compute_stats()$punt_team_stats
-    stats %>% arrange(desc(total_yardage)) %>% head(3) %>% select(posteam, total_yardage)
+    datatable(
+      stats %>% arrange(desc(total_yardage)) %>% head(3) %>% select(posteam, logo_url, total_yardage),
+      options = list(
+        dom = 't',
+        pageLength = 3,
+        ordering = FALSE,
+        columnDefs = list(
+          list(className = 'dt-center', targets = '_all'),
+          list(
+            render = JS(
+              "function(data, type, row) {",
+              "  return type === 'display' && data ? '<img src=\"' + data + '\" class=\"team-logo\" alt=\"Team Logo\" />' : data;",
+              "}"
+            ),
+            targets = 1
+          )
+        )
+      ),
+      class = 'dataTable',
+      colnames = c("Team", "Logo", "Total Yardage (yds)"),
+      escape = FALSE
+    )
   })
 
-  output$topLongPunt <- renderTable({
+  output$topLongPunt <- renderDT({
     stats <- compute_stats()$punt_team_stats
-    stats %>% arrange(desc(longest_punt)) %>% head(3) %>% select(posteam, longest_punt)
+    datatable(
+      stats %>% arrange(desc(longest_punt)) %>% head(3) %>% select(posteam, logo_url, longest_punt),
+      options = list(
+        dom = 't',
+        pageLength = 3,
+        ordering = FALSE,
+        columnDefs = list(
+          list(className = 'dt-center', targets = '_all'),
+          list(
+            render = JS(
+              "function(data, type, row) {",
+              "  return type === 'display' && data ? '<img src=\"' + data + '\" class=\"team-logo\" alt=\"Team Logo\" />' : data;",
+              "}"
+            ),
+            targets = 1
+          )
+        )
+      ),
+      class = 'dataTable',
+      colnames = c("Team", "Logo", "Longest Punt (yds)"),
+      escape = FALSE
+    )
   })
 
   output$puntDetails <- renderPrint({
