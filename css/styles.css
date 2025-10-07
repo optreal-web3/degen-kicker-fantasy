@@ -1,0 +1,298 @@
+/* General Page Styling */
+body {
+    font-family: 'Roboto', sans-serif;
+    margin: 0;
+    padding: 0;
+    background: linear-gradient(to bottom, #1e1e1e, #2d2d2d);
+    color: #e0e0e0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Page Title */
+.page-title {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Roboto', sans-serif;
+    font-weight: 300;
+    font-size: 3em;
+    color: #a855f7;
+    text-align: center;
+    margin: 20px auto 10px;
+    max-width: 900px;
+    width: 100%;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+.page-title span {
+    margin: 0 10px;
+}
+
+.header-logo {
+    width: 50px;
+    height: 50px;
+}
+
+/* Week Selector */
+.week-selector {
+    text-align: center;
+    margin: 10px auto;
+    max-width: 900px;
+    width: 100%;
+}
+
+.week-selector label {
+    font-family: 'Roboto', sans-serif;
+    font-size: 1.2em;
+    color: #e0e0e0;
+    margin-right: 10px;
+}
+
+.week-selector select {
+    font-family: 'Roboto', sans-serif;
+    font-size: 1em;
+    padding: 5px;
+    background: #222;
+    color: #e0e0e0;
+    border: 2px solid #a855f7;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+/* Kicker Showcase */
+.kicker-showcase {
+    margin: 20px auto;
+    max-width: 900px;
+    width: 100%;
+}
+
+.kicker-showcase .cards {
+    display: flex;
+    justify-content: space-around;
+    flex-wrap: wrap;
+}
+
+.kicker-card {
+    text-align: center;
+    background: transparent;
+    border: 2px solid #a855f7;
+    border-radius: 12px;
+    padding: 15px;
+    margin: 10px;
+    width: 200px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.kicker-card:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 16px rgba(168, 85, 247, 0.5);
+}
+
+.kicker-card img {
+    width: 200px;
+    height: auto;
+    border-radius: 50%;
+}
+
+.kicker-card h3 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.4em;
+    color: #a855f7;
+    margin: 10px 0 5px;
+    text-shadow: 0 0 3px rgba(168, 85, 247, 0.3);
+}
+
+.kicker-card .team-logo {
+    width: 60px;
+    height: 60px;
+    margin: 5px auto;
+    display: block;
+}
+
+.kicker-card p {
+    font-family: 'Roboto', sans-serif;
+    font-size: 0.9em;
+    color: #e0e0e0;
+    margin: 5px 0;
+}
+
+/* Main Container */
+.container {
+    max-width: 900px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 0 20px;
+    flex: 1;
+}
+
+.section {
+    background-color: #222;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    padding: 15px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* Table Styling */
+.table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.table th, .table td {
+    padding: 10px;
+    text-align: center;
+    border-bottom: 1px solid #333;
+}
+
+.table th:nth-child(3),
+.table th:nth-child(4),
+.table th:nth-child(5),
+.table th:nth-child(6),
+.table td:nth-child(3),
+.table td:nth-child(4),
+.table td:nth-child(5),
+.table td:nth-child(6) {
+    width: 80px;
+}
+
+.table th.sortable {
+    cursor: pointer;
+}
+
+.highlight-cell {
+    background-color: #a855f7;
+    color: #000;
+    border-radius: 4px;
+}
+
+.team-logo {
+    width: 50px;
+    height: 50px;
+    margin: 0 2px;
+    vertical-align: middle;
+}
+
+.kicker-details {
+    font-size: 0.9em;
+    color: #bbb;
+    text-align: center;
+    display: none;
+}
+
+.kicker-details td {
+    padding: 10px;
+    border-bottom: 1px solid #333;
+}
+
+.wallet-row:hover {
+    background-color: #333;
+    cursor: pointer;
+}
+
+/* Hero Quote */
+.hero-quote {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2.5em;
+    color: #a855f7;
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin: 20px auto;
+    max-width: 900px;
+    width: 100%;
+}
+
+/* Banner */
+.banner {
+    background: url('https://i.ibb.co/Z1cx3kd0/Kicker-App-Hero-Banner-1500x350.jpg') no-repeat center center;
+    background-size: 1500px 350px;
+    height: 350px;
+    margin: 20px auto;
+    max-width: 900px;
+    width: 100%;
+    border-radius: 8px;
+}
+
+/* Footer */
+footer {
+    background: #1e1e1e;
+    text-align: center;
+    padding: 20px;
+    color: #e0e0e0;
+    font-family: 'Roboto', sans-serif;
+    font-size: 0.9em;
+    margin-top: 20px;
+}
+
+footer p {
+    margin: 0;
+}
+
+/* Responsive Design */
+@media (max-width: 600px) {
+    .page-title {
+        font-size: 2em;
+        margin: 10px auto;
+        flex-direction: column;
+    }
+    .page-title span {
+        margin: 5px 0;
+    }
+    .header-logo {
+        margin: 5px 0;
+    }
+    .week-selector {
+        margin: 10px auto;
+    }
+    .week-selector select {
+        width: 100%;
+        max-width: 200px;
+    }
+    .hero-quote {
+        font-size: 1.8em;
+        margin: 10px auto;
+    }
+    .kicker-showcase .cards {
+        flex-direction: column;
+        align-items: center;
+    }
+    .kicker-card {
+        width: 100%;
+        max-width: 300px;
+    }
+    .kicker-card img {
+        width: 150px;
+    }
+    .kicker-card .team-logo {
+        width: 45px;
+        height: 45px;
+    }
+    .table th, .table td {
+        display: block;
+        text-align: left;
+    }
+    .table th:nth-child(3),
+    .table th:nth-child(4),
+    .table th:nth-child(5),
+    .table th:nth-child(6),
+    .table td:nth-child(3),
+    .table td:nth-child(4),
+    .table td:nth-child(5),
+    .table td:nth-child(6) {
+        width: auto;
+    }
+    .team-logo {
+        width: 40px;
+        height: 40px;
+    }
+    .banner {
+        background-size: 100% 200px;
+        height: 200px;
+    }
+}
+```
