@@ -13,7 +13,9 @@ def get_game_ids(week):
         response = requests.get(url, timeout=10)
         response.raise_for_status()
         data = response.json()
-        return [event['id'] for event in data.get('events', [])]
+        game_ids = [event['id'] for event in data.get('events', [])]
+        print(f"Week {week} game IDs: {game_ids}")
+        return game_ids
     except Exception as e:
         print(f"Error fetching game IDs for week {week}: {e}")
         return []
@@ -23,7 +25,9 @@ def get_pbp(game_id):
     try:
         response = requests.get(url, timeout=10)
         response.raise_for_status()
-        return response.json().get('plays', [])
+        plays = response.json().get('plays', [])
+        print(f"Game {game_id} plays count: {len(plays)}")
+        return plays
     except Exception as e:
         print(f"Error fetching PBP for game {game_id}: {e}")
         return []
