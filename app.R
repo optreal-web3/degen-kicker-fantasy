@@ -14,18 +14,18 @@ ui <- fluidPage(
       .container { max-width: 1500px; margin: auto; padding: 20px; }
       .week-selector { display: flex; justify-content: center; margin-bottom: 20px; }
       .panel-row { display: flex; justify-content: space-between; gap: 20px; margin-bottom: 20px; }
-      .panel { background: #1e1e1e; border-radius: 10px; padding: 20px; box-shadow: 0 4px 8px rgba(0,0,0,0.3); flex: 1; }
+      .panel { background: #2a2a2a; border-radius: 10px; padding: 20px; box-shadow: 0 4px 8px rgba(0,0,0,0.3); flex: 1; }
       h3 { color: #bbdefb; font-size: 1.5em; margin-top: 0; }
-      table { width: 100%; border-collapse: collapse; }
-      th, td { padding: 10px; text-align: left; border-bottom: 1px solid #333; }
+      table { width: 100%; border-collapse: collapse; background: #333333; }
+      th, td { padding: 10px; text-align: left; border-bottom: 1px solid #444; }
       th { background: #1976d2; color: #ffffff; }
       .no-data { color: #ef5350; text-align: center; font-size: 1.2em; }
       .team-logo { width: 40px; height: 40px; vertical-align: middle; margin-right: 10px; }
-      .player-section { margin-bottom: 15px; padding: 10px; background: #2a2a2a; border-radius: 5px; }
+      .player-section { margin-bottom: 15px; padding: 10px; background: #333333; border-radius: 5px; }
     "))
   ),
   div(class = "header",
-    h1(HTML("Real Fantasy <span>Football</span> ... Not that Egghand Stuff"))
+    h1(HTML("The Real (Special) Fantasy <span>Football</span> Challenge"))
   ),
   div(class = "container",
     div(class = "week-selector",
