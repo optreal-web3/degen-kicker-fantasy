@@ -17,12 +17,11 @@ ui <- fluidPage(
       .header h1 span { font-weight: bold; font-style: italic; }
       .container { max-width: 1500px; margin: auto; padding: 20px; }
       .controls { display: flex; align-items: center; margin-bottom: 20px; }
-      .how-to-play { background: #2a2a2a; border-radius: 8px; padding: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.3); width: 70%; margin-left: 10px; }
+      .how-to-play { background: #2a2a2a; border-radius: 8px; padding: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.3); width: 150px; margin-left: 10px; }
       .how-to-play h4 { margin: 0; color: #bbdefb; cursor: pointer; font-size: 0.9em; }
       .how-to-play h4:hover { color: #90caf9; }
       .how-to-play-content { margin-top: 10px; font-size: 0.9em; }
-      .week-selector { width: 30%; }
-      .week-selector .selectize-control .selectize-input { background: #2a2a2a; color: #e0e0e0; border: 1px solid #1976d2; border-radius: 5px; padding: 5px; font-size: 0.9em; width: 100%; }
+      .week-selector .selectize-control .selectize-input { background: #2a2a2a; color: #e0e0e0; border: 1px solid #1976d2; border-radius: 5px; padding: 5px; font-size: 0.9em; width: 150px; }
       .panel-row { display: flex; justify-content: space-between; gap: 20px; margin-bottom: 20px; }
       .panel { background: #2a2a2a; border-radius: 10px; padding: 20px; box-shadow: 0 4px 8px rgba(0,0,0,0.3); flex: 1; display: flex; flex-direction: column; justify-content: center; }
       h3 { color: #bbdefb; font-size: 1.5em; margin-top: 0; text-align: center; }
@@ -43,14 +42,14 @@ ui <- fluidPage(
   div(class = "container",
     div(class = "controls",
       div(class = "week-selector",
-        pickerInput("week", "2025 Season", choices = paste("Week", 1:5), selected = "Week 1", options = list(style = "btn-primary", width = "100%"))
+        pickerInput("week", "2025 Season", choices = paste("Week", 1:5), selected = "Week 1", options = list(style = "btn-primary", width = "150px"))
       ),
       div(class = "how-to-play",
         shinyjs::useShinyjs(),
         h4("How to Play", onclick = "Shiny.setInputValue('toggleHowTo', Math.random())"),
         shinyjs::hidden(
           div(id = "howToContent", class = "how-to-play-content",
-            p("Kickers: 3 points per FG made, 1 point per XP made."),
+            p("Kickers: PAT (+1 made or -1 miss), FG <30 yards (+1 or -4), 30-39 (+2 or -3), 40-49 (+3 or -2), 50-59 (+4 or -1), 60+ (+5 or 0)."),
             p("Punters: 0.05 points per punt yard, -0.05 per return yard (net yards), +0.5 per punt inside 20, +1.5 inside 10, -5 for touchbacks, -4 for blocks.")
           )
         )
@@ -159,19 +158,37 @@ server <- function(input, output) {
       kicker_team_stats <- data.frame()
       kicker_details <- data.frame()
     } else {
-      fg_made <- fg_data %>% filter(
-        (play_type == "field_goal" & field_goal_result == "made") | 
-        (play_type == "extra_point" & extra_point_result == "good")
-      )
-      kicker_team_stats <- fg_made %>%
+      kicker_points_calc <- function(dist, made) {
+        if (made) {
+          if (dist < 30) return(1)
+          if (dist < 40) return(2)
+          if (dist < 50) return(3)
+          if (dist < 60) return(4)
+          return(5)
+        } else {
+          if (dist < 30) return(-4)
+          if (dist < 40) return(-3)
+          if (dist < 50) return(-2)
+          if (dist < 60) return(-1)
+          return(0)
+        }
+      }
+      
+      fg_data <- fg_data %>%
+        mutate(kick_points = case_when(
+          play_type == "extra_point" ~ ifelse(extra_point_result == "good", 1, -1),
+          play_type == "field_goal" ~ mapply(kicker_points_calc, kick_distance, field_goal_result == "made")
+        ))
+      
+      kicker_team_stats <- fg_data %>%
         group_by(posteam) %>%
         summarise(
-          fg_points = sum(ifelse(play_type == "field_goal", 3, 1)),
+          fg_points = sum(kick_points, na.rm = TRUE),
           total_dist = sum(kick_distance[play_type == "field_goal"], na.rm = TRUE),
           longest = if(sum(play_type == "field_goal") > 0) max(kick_distance[play_type == "field_goal"], na.rm = TRUE) else 0,
           .groups = 'drop'
         ) %>%
-        filter(fg_points > 0) %>%
+        filter(fg_points != 0) %>%
         left_join(team_data %>% select(team_abbr, team_name), by = c("posteam" = "team_abbr")) %>%
         arrange(team_name)
       
@@ -183,9 +200,10 @@ server <- function(input, output) {
           made_xp = sum(play_type == "extra_point" & extra_point_result == "good"),
           missed_xp = sum(play_type == "extra_point" & extra_point_result != "good"),
           dists = list(kick_distance[play_type == "field_goal" & field_goal_result == "made"]),
+          kick_points = sum(kick_points, na.rm = TRUE),
           .groups = 'drop'
         ) %>%
-        filter(made_fg + made_xp > 0) %>%
+        filter(kick_points != 0) %>%
         left_join(team_data %>% select(team_abbr, team_name), by = c("posteam" = "team_abbr")) %>%
         arrange(team_name)
     }
@@ -382,13 +400,14 @@ server <- function(input, output) {
               player <- team_kickers[i,]
               tags$p(
                 sprintf(
-                  "Kicker %s: %d FG made (%s), %d FG missed, %d XP made, %d XP missed",
+                  "Kicker %s: %d FG made (%s), %d FG missed, %d XP made, %d XP missed, %d fantasy points",
                   player$kicker_player_name,
                   player$made_fg,
                   paste(player$dists[[1]], collapse = ", "),
                   player$missed_fg,
                   player$made_xp,
-                  player$missed_xp
+                  player$missed_xp,
+                  as.integer(player$kick_points)
                 )
               )
             })
@@ -433,13 +452,14 @@ server <- function(input, output) {
               player <- team_kickers[i,]
               tags$p(
                 sprintf(
-                  "Kicker %s: %d FG made (%s), %d FG missed, %d XP made, %d XP missed",
+                  "Kicker %s: %d FG made (%s), %d FG missed, %d XP made, %d XP missed, %d fantasy points",
                   player$kicker_player_name,
                   player$made_fg,
                   paste(player$dists[[1]], collapse = ", "),
                   player$missed_fg,
                   player$made_xp,
-                  player$missed_xp
+                  player$missed_xp,
+                  as.integer(player$kick_points)
                 )
               )
             })
