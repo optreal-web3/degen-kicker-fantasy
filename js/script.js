@@ -1,4 +1,3 @@
-javascript
 // Track user interaction for initial sort behavior
 let hasInteracted = false;
 
@@ -47,11 +46,11 @@ function sortTable(n) {
     collapseAllDetails();
 }
 
-// Highlight maximum values in PTS, YDS, LONG, FG Made columns
+// Highlight maximum values in PTS, YDS, LONG columns
 function highlightMax() {
     const table = document.getElementById("leaderboard");
     const tbody = table.tBodies[0];
-    const cols = [2, 3, 4, 5]; // 0-based for PTS, YDS, LONG, FG Made
+    const cols = [2, 3, 4]; // 0-based for PTS, YDS, LONG
     cols.forEach(col => {
         let values = [];
         Array.from(tbody.rows).forEach((row, index) => {
@@ -88,12 +87,11 @@ function initialSort() {
     const rows = Array.from(tbody.rows).filter((row, index) => index % 2 === 0);
     const detailsRows = Array.from(tbody.rows).filter((row, index) => index % 2 !== 0);
 
-    // Find top rows for PTS, YDS, LONG, FG Made
+    // Find top rows for PTS, YDS, LONG
     let sortedRows = [
         rows.find(row => parseInt(row.cells[2].textContent) === Math.max(...rows.map(r => parseInt(r.cells[2].textContent)))),
         rows.find(row => parseInt(row.cells[3].textContent) === Math.max(...rows.map(r => parseInt(r.cells[3].textContent)))),
-        rows.find(row => parseInt(row.cells[4].textContent) === Math.max(...rows.map(r => parseInt(r.cells[4].textContent)))),
-        rows.find(row => parseInt(row.cells[5].textContent) === Math.max(...rows.map(r => parseInt(r.cells[5].textContent))))
+        rows.find(row => parseInt(row.cells[4].textContent) === Math.max(...rows.map(r => parseInt(r.cells[4].textContent))))
     ];
 
     // Remove duplicates while preserving order
@@ -127,93 +125,16 @@ function initialSort() {
     }
 }
 
-// Fetch and update data for selected week
-async function fetchWeekData(week) {
-    // Check localStorage first
-    const cached = localStorage.getItem(`week_${week}`);
-    if (cached) return JSON.parse(cached);
-
-    // Fetch from Vercel
-    try {
-        const response = await fetch(`/data/week_${week}.json`);
-        if (!response.ok) throw new Error('Failed to fetch data');
-        const data = await response.json();
-        localStorage.setItem(`week_${week}`, JSON.stringify(data));
-        return data;
-    } catch (error) {
-        console.error('Error fetching week data:', error);
-        return null;
-    }
-}
-
-// Update kicker showcase and leaderboard
-function updateUI(data, week) {
-    if (!data || data.length === 0) {
-        document.querySelectorAll('.kicker-card').forEach(card => {
-            card.querySelector('h3').textContent = 'No Data';
-            card.querySelectorAll('p').forEach(p => p.textContent = 'N/A');
-        });
-        const tbody = document.querySelector('#leaderboard tbody');
-        tbody.innerHTML = '<tr><td colspan="6">No data available</td></tr>';
-        return;
-    }
-
-    // Update kicker showcase
-    const kickers = data;
-    const topPts = kickers.sort((a, b) => b.pts - a.pts)[0] || {};
-    const topYds = kickers.sort((a, b) => b.yds - a.yds)[0] || {};
-    const topLong = kickers.sort((a, b) => b.long - a.long)[0] || {};
-
-    const updateCard = (selector, kicker) => {
-        const card = document.querySelector(`.kicker-card[data-kicker="${selector}"]`);
-        if (card && kicker.kicker) {
-            card.querySelector('h3').textContent = kicker.kicker;
-            const [p1, p2] = card.querySelectorAll('p');
-            p1.textContent = `Fantasy PTS: ${kicker.pts || 'N/A'}`;
-            p2.textContent = `FG Made: ${kicker.fg_made || 'N/A'}`;
-            if (kicker.team) {
-                card.querySelector('.team-logo').src = `https://a.espncdn.com/i/teamlogos/nfl/500/${kicker.team.toLowerCase()}.png`;
-            }
-        }
-    };
-
-    updateCard('top-pts', topPts);
-    updateCard('top-yds', topYds);
-    updateCard('top-long', topLong);
-
-    // Update leaderboard (mock wallet data; replace with actual wallet mappings)
-    const tbody = document.querySelector('#leaderboard tbody');
-    tbody.innerHTML = '';
-    const mockWallets = [
-        { wallet: '0x1a2b3...a6b7c', teams: ['buf', 'cin', 'cle'], kickers: ['Kicker X', 'Kicker Y', 'Kicker Z'] },
-        { wallet: '0x2b3c4...b7c8d', teams: ['den', 'ind', 'jax'], kickers: ['Kicker P', 'Kicker Q', 'Kicker R'] },
-    ];
-    mockWallets.forEach((entry, index) => {
-        const kicker = kickers[index % kickers.length] || {};
-        const row = document.createElement('tr');
-        row.classList.add('wallet-row');
-        row.dataset.wallet = entry.wallet;
-        row.innerHTML = `
-            <td>${entry.wallet}</td>
-            <td>${entry.teams.map(team => `<img src="https://a.espncdn.com/i/teamlogos/nfl/500/${team}.png" alt="${team} Logo" class="team-logo">`).join('')}</td>
-            <td>${kicker.pts || 0}</td>
-            <td>${kicker.yds || 0}</td>
-            <td>${kicker.long || 0}</td>
-            <td>${kicker.fg_made || 0}</td>
-        `;
-        const detailRow = document.createElement('tr');
-        detailRow.classList.add('kicker-details');
-        detailRow.dataset.wallet = entry.wallet;
-        detailRow.innerHTML = `<td colspan="6">${entry.kickers.join(', ')}</td>`;
-        tbody.appendChild(row);
-        tbody.appendChild(detailRow);
-    });
-
-    initialSort(); // Moved here to run after data population
+// Placeholder for future API data fetching
+function fetchKickerData() {
+    // TODO: Add API call (e.g., to nflfastR or Render backend)
+    // Example: fetch('https://your-api-endpoint').then(response => response.json()).then(data => { /* Update table */ });
+    console.log("Placeholder for fetching dynamic kicker data");
 }
 
 // Initialize page
-document.addEventListener('DOMContentLoaded', async function() {
+document.addEventListener('DOMContentLoaded', function() {
+    initialSort();
     document.querySelectorAll('#leaderboard tbody tr.wallet-row').forEach(row => {
         row.addEventListener('click', () => {
             hasInteracted = true;
@@ -222,6 +143,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             if (details && details.classList.contains('kicker-details') && details.dataset.wallet === wallet) {
                 details.style.display = details.style.display === 'none' || details.style.display === '' ? 'table-row' : 'none';
             }
+            // Collapse all other details
             document.querySelectorAll('.kicker-details').forEach(otherDetails => {
                 if (otherDetails !== details) {
                     otherDetails.style.display = 'none';
@@ -229,17 +151,8 @@ document.addEventListener('DOMContentLoaded', async function() {
             });
         });
     });
+    // Add click event listeners for sortable table headers
     document.querySelectorAll('#leaderboard th.sortable').forEach((th, index) => {
         th.addEventListener('click', () => sortTable(index + 2));
     });
-
-    // Week selector
-    const weekSelect = document.getElementById('week-select');
-    const loadWeek = async () => {
-        const week = weekSelect.value;
-        const data = await fetchWeekData(week);
-        updateUI(data, week);
-    };
-    weekSelect.addEventListener('change', loadWeek);
-    await loadWeek(); // Load initial week
 });
