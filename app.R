@@ -15,7 +15,13 @@ ui <- fluidPage(
       .header h1 { color: #ffffff; font-size: 2em; margin: 0; max-width: 1500px; }
       .header h1 span { font-weight: bold; font-style: italic; }
       .container { max-width: 1500px; margin: auto; padding: 20px; }
-      .week-selector { display: flex; justify-content: center; margin-bottom: 20px; }
+      .controls { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+      .how-to-play { background: #2a2a2a; border-radius: 8px; padding: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.3); }
+      .how-to-play button { background: #1976d2; color: #ffffff; border: none; padding: 8px 16px; border-radius: 5px; cursor: pointer; font-size: 0.9em; }
+      .how-to-play button:hover { background: #1565c0; }
+      .how-to-play-content { margin-top: 10px; font-size: 0.9em; }
+      .week-selector { margin-left: 20px; }
+      .week-selector .selectize-control .selectize-input { background: #2a2a2a; color: #e0e0e0; border: 1px solid #1976d2; border-radius: 5px; padding: 5px; font-size: 0.9em; width: 150px; }
       .panel-row { display: flex; justify-content: space-between; gap: 20px; margin-bottom: 20px; }
       .panel { background: #2a2a2a; border-radius: 10px; padding: 20px; box-shadow: 0 4px 8px rgba(0,0,0,0.3); flex: 1; display: flex; flex-direction: column; justify-content: center; }
       h3 { color: #bbdefb; font-size: 1.5em; margin-top: 0; text-align: center; }
@@ -28,15 +34,26 @@ ui <- fluidPage(
       .leaders-header { text-align: center; color: #ffffff; font-size: 1.8em; margin-bottom: 10px; }
       .details-row { display: flex; gap: 20px; }
       .details-col { flex: 1; }
-      .how-to-play { margin-bottom: 20px; }
     "))
   ),
   div(class = "header",
     h1(HTML("The Real Fantasy <span>Football</span> Challenge"))
   ),
   div(class = "container",
-    div(class = "week-selector",
-      pickerInput("week", "Select Week", choices = 1:5, selected = 1, options = list(style = "btn-primary", width = "200px"))
+    div(class = "controls",
+      div(class = "how-to-play",
+        shinyjs::useShinyjs(),
+        actionButton("toggleHowTo", "How to Play"),
+        shinyjs::hidden(
+          div(id = "howToContent", class = "how-to-play-content",
+            p("Kickers: 3 points per FG made, 1 point per XP made."),
+            p("Punters: 0.05 points per punt yard, -0.05 per return yard (net yards), +0.5 per punt inside 20, +1.5 inside 10, -5 for touchbacks, -4 for blocks.")
+          )
+        )
+      ),
+      div(class = "week-selector",
+        pickerInput("week", "Select Week", choices = 1:5, selected = 1, options = list(style = "btn-primary", width = "150px"))
+      )
     ),
     div(class = "leaders-header", "Kicking Leaders"),
     div(class = "panel-row",
@@ -107,16 +124,6 @@ ui <- fluidPage(
         conditionalPanel(
           condition = "output.topLongPunt === undefined || output.topLongPunt.length == 0",
           div(class = "no-data", "No data available for selected week")
-        )
-      )
-    ),
-    div(class = "panel how-to-play",
-      shinyjs::useShinyjs(),
-      actionButton("toggleHowTo", "How to Play"),
-      shinyjs::hidden(
-        div(id = "howToContent",
-          p("Kickers: 3 points per FG made, 1 point per XP made."),
-          p("Punters: 0.05 points per punt yard, -0.05 per return yard (net yards), +0.5 per punt inside 20, +1.5 inside 10, -5 for touchbacks, -4 for blocks.")
         )
       )
     ),
