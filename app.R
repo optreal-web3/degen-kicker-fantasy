@@ -5,19 +5,20 @@ library(nflfastR)
 
 ui <- fluidPage(
   tags$head(
+    tags$link(rel = "stylesheet", href = "https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap"),
     tags$style(HTML("
-      body { font-family: 'Arial', sans-serif; background: #f4f7fa; color: #333; }
+      body { font-family: 'Roboto', sans-serif; background: #121212; color: #e0e0e0; }
       .container { max-width: 1200px; margin: auto; padding: 20px; }
-      h1 { color: #2c3e50; text-align: center; font-size: 2.5em; margin-bottom: 20px; }
-      h3 { color: #34495e; font-size: 1.5em; margin-top: 20px; }
-      .panel { background: white; border-radius: 10px; padding: 20px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); margin-bottom: 20px; }
+      h1 { color: #ffffff; text-align: center; font-size: 2.5em; margin-bottom: 20px; }
+      h3 { color: #bbdefb; font-size: 1.5em; margin-top: 20px; }
+      .panel { background: #1e1e1e; border-radius: 10px; padding: 20px; box-shadow: 0 4px 8px rgba(0,0,0,0.3); margin-bottom: 20px; }
       .shiny-input-container { margin-bottom: 20px; }
       table { width: 100%; border-collapse: collapse; }
-      th, td { padding: 10px; text-align: left; border-bottom: 1px solid #ddd; }
-      th { background: #3498db; color: white; }
-      pre { background: #ecf0f1; padding: 15px; border-radius: 5px; }
+      th, td { padding: 10px; text-align: left; border-bottom: 1px solid #333; }
+      th { background: #1976d2; color: #ffffff; }
+      pre { background: #212121; padding: 15px; border-radius: 5px; color: #e0e0e0; }
       .week-selector { display: flex; justify-content: center; }
-      .no-data { color: #e74c3c; text-align: center; font-size: 1.2em; }
+      .no-data { color: #ef5350; text-align: center; font-size: 1.2em; }
     "))
   ),
   div(class = "container",
@@ -78,8 +79,8 @@ server <- function(input, output) {
   })
 
   compute_stats <- reactive({
-    week <- as.integer(input$week)
-    fg <- pbp() %>% filter(week == week & play_type == "field_goal" & kick_distance > 0)
+    week_num <- as.integer(input$week)
+    fg <- pbp() %>% filter(week == week_num & play_type == "field_goal" & kick_distance > 0)
     if (nrow(fg) == 0) {
       return(list(team_stats = data.frame(), kickers = data.frame()))
     }
