@@ -143,12 +143,12 @@ server <- function(input, output) {
         summarise(
           fg_points = sum(ifelse(play_type == "field_goal", 3, 1)),
           total_dist = sum(kick_distance[play_type == "field_goal"], na.rm = TRUE),
-          longest = max(kick_distance[play_type == "field_goal"], na.rm = TRUE),
+          longest = if(sum(play_type == "field_goal") > 0) max(kick_distance[play_type == "field_goal"], na.rm = TRUE) else 0,
           .groups = 'drop'
         ) %>%
         filter(fg_points > 0) %>%
-        left_join(team_data %>% select(team_abbr, team_city), by = c("posteam" = "team_abbr")) %>%
-        arrange(team_city)
+        left_join(team_data %>% select(team_abbr, team_name), by = c("posteam" = "team_abbr")) %>%
+        arrange(team_name)
       
       kicker_details <- fg_data %>%
         group_by(posteam, kicker_player_name) %>%
@@ -161,8 +161,8 @@ server <- function(input, output) {
           .groups = 'drop'
         ) %>%
         filter(made_fg + made_xp > 0) %>%
-        left_join(team_data %>% select(team_abbr, team_city), by = c("posteam" = "team_abbr")) %>%
-        arrange(team_city)
+        left_join(team_data %>% select(team_abbr, team_name), by = c("posteam" = "team_abbr")) %>%
+        arrange(team_name)
     }
     
     # Punter stats
@@ -188,8 +188,8 @@ server <- function(input, output) {
           .groups = 'drop'
         ) %>%
         filter(total_punts > 0) %>%
-        left_join(team_data %>% select(team_abbr, team_city), by = c("posteam" = "team_abbr")) %>%
-        arrange(team_city)
+        left_join(team_data %>% select(team_abbr, team_name), by = c("posteam" = "team_abbr")) %>%
+        arrange(team_name)
       
       punter_details <- punt_data %>%
         group_by(posteam, punter_player_name) %>%
@@ -206,8 +206,8 @@ server <- function(input, output) {
           ),
           .groups = 'drop'
         ) %>%
-        left_join(team_data %>% select(team_abbr, team_city), by = c("posteam" = "team_abbr")) %>%
-        arrange(team_city)
+        left_join(team_data %>% select(team_abbr, team_name), by = c("posteam" = "team_abbr")) %>%
+        arrange(team_name)
     }
     
     list(
@@ -337,7 +337,7 @@ server <- function(input, output) {
     punter_details <- compute_stats()$punter_details
     teams <- unique(c(kicker_details$posteam, punter_details$posteam))
     if (length(teams) == 0) return(NULL)
-    teams <- teams[order(team_data$team_city[match(teams, team_data$team_abbr)])]
+    teams <- teams[order(team_data$team_name[match(teams, team_data$team_abbr)])]
     lapply(teams, function(team) {
       team_kickers <- kicker_details %>% filter(posteam == team)
       team_punters <- punter_details %>% filter(posteam == team)
