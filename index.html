@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Degen Kicker Fantasy</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&family=Bebas+Neue&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+    <div class="page-title">
+        <img src="https://i.ibb.co/8nDRc40j/KOD-Logo-Icon-400x400.png" alt="KOD Logo" class="header-logo">
+        <span>Degen Kicker Fantasy</span>
+        <img src="https://i.ibb.co/8nDRc40j/KOD-Logo-Icon-400x400.png" alt="KOD Logo" class="header-logo">
+    </div>
+    <div class="week-selector">
+        <label for="week-select">Select Week:</label>
+        <select id="week-select">
+            <option value="1">Week 1</option>
+            <option value="2">Week 2</option>
+            <option value="3">Week 3</option>
+            <option value="4">Week 4</option>
+            <option value="5" selected>Week 5</option>
+            <!-- Add up to Week 18 as season progresses -->
+        </select>
+    </div>
+    <div class="kicker-showcase">
+        <div class="cards">
+            <div class="kicker-card" data-kicker="top-pts">
+                <img src="https://a.espncdn.com/i/headshots/nfl/players/full/3953687.png" alt="Top Points Kicker">
+                <h3>Top Points</h3>
+                <img src="https://a.espncdn.com/i/teamlogos/nfl/500/dal.png" alt="Team Logo" class="team-logo">
+                <p>Fantasy PTS: Loading...</p>
+                <p>FG Made: Loading...</p>
+            </div>
+            <div class="kicker-card" data-kicker="top-yds">
+                <img src="https://a.espncdn.com/i/headshots/nfl/players/full/4034949.png" alt="Top Yards Kicker">
+                <h3>Top Yards</h3>
+                <img src="https://a.espncdn.com/i/teamlogos/nfl/500/sf.png" alt="Team Logo" class="team-logo">
+                <p>Total YDS: Loading...</p>
+                <p>FG Made: Loading...</p>
+            </div>
+            <div class="kicker-card" data-kicker="top-long">
+                <img src="https://a.espncdn.com/i/headshots/nfl/players/full/4571557.png" alt="Top Long Kicker">
+                <h3>Top Long</h3>
+                <img src="https://a.espncdn.com/i/teamlogos/nfl/500/ind.png" alt="Team Logo" class="team-logo">
+                <p>LONGEST: Loading...</p>
+                <p>FG Made: Loading...</p>
+            </div>
+        </div>
+    </div>
+    <div class="container">
+        <div class="section">
+            <table class="table" id="leaderboard">
+                <thead>
+                    <tr>
+                        <th>Wallet</th>
+                        <th>Teams</th>
+                        <th class="sortable">PTS</th>
+                        <th class="sortable">YDS</th>
+                        <th class="sortable">LONG</th>
+                        <th class="sortable">FG Made</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Populated dynamically -->
+                </tbody>
+            </table>
+        </div>
+        <div class="hero-quote">"a QB is only as good as his... kicker"</div>
+        <div class="banner"></div>
+    </div>
+    <footer>
+        <p>© 2025 Degen Kicker Fantasy. All rights reserved. | Contact: support@degenkicker.com | Terms & Privacy</p>
+    </footer>
+    <script src="/js/script.js"></script>
+</body>
+</html>
