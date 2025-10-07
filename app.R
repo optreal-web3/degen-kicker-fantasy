@@ -2,18 +2,16 @@ library(shiny)
 library(shinyWidgets)
 library(dplyr)
 library(nflfastR)
-library(nflreadr)
-
-# Load players once for IDs
-players_df <- load_players()
 
 ui <- fluidPage(
   tags$head(
     tags$link(rel = "stylesheet", href = "https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap"),
     tags$style(HTML("
       body { font-family: 'Roboto', sans-serif; background: #121212; color: #e0e0e0; }
+      .header { background: #1e1e1e; padding: 15px; text-align: center; border-bottom: 2px solid #1976d2; margin-bottom: 20px; }
+      .header h1 { color: #ffffff; font-size: 2.5em; margin: 0; }
+      .header h1 span { font-weight: bold; font-style: italic; }
       .container { max-width: 1200px; margin: auto; padding: 20px; }
-      h1 { color: #ffffff; text-align: center; font-size: 2.5em; margin-bottom: 20px; }
       h3 { color: #bbdefb; font-size: 1.5em; margin-top: 20px; }
       .panel { background: #1e1e1e; border-radius: 10px; padding: 20px; box-shadow: 0 4px 8px rgba(0,0,0,0.3); margin-bottom: 20px; }
       .shiny-input-container { margin-bottom: 20px; }
@@ -24,12 +22,13 @@ ui <- fluidPage(
       .week-selector { display: flex; justify-content: center; }
       .no-data { color: #ef5350; text-align: center; font-size: 1.2em; }
       .team-logo { width: 40px; height: 40px; vertical-align: middle; margin-right: 10px; }
-      .player-photo { width: 50px; height: 50px; border-radius: 50%; vertical-align: middle; margin-right: 10px; object-fit: cover; }
       .player-section { margin-bottom: 15px; padding: 10px; background: #2a2a2a; border-radius: 5px; }
     "))
   ),
+  div(class = "header",
+    h1(HTML("Real Fantasy <span>Football</span>"))
+  ),
   div(class = "container",
-    h1("Degen Kicker Fantasy Stats"),
     div(class = "week-selector",
       pickerInput("week", "Select Week", choices = 1:5, selected = 1, options = list(style = "btn-primary", width = "200px"))
     ),
@@ -154,8 +153,7 @@ server <- function(input, output) {
         filter(fg_points > 0)
       
       kicker_details <- fg_data %>%
-        left_join(players_df %>% select(display_name, espn_id), by = c("kicker_player_name" = "display_name")) %>%
-        group_by(posteam, kicker_player_name, espn_id) %>%
+        group_by(posteam, kicker_player_name) %>%
         summarise(
           made_fg = sum(play_type == "field_goal" & field_goal_result == "made"),
           missed_fg = sum(play_type == "field_goal" & field_goal_result != "made" & !is.na(field_goal_result)),
@@ -184,8 +182,7 @@ server <- function(input, output) {
         filter(total_punts > 0)
       
       punter_details <- punt_data %>%
-        left_join(players_df %>% select(display_name, espn_id), by = c("punter_player_name" = "display_name")) %>%
-        group_by(posteam, punter_player_name, espn_id) %>%
+        group_by(posteam, punter_player_name) %>%
         summarise(
           punts = n(),
           dists = list(kick_distance),
@@ -271,13 +268,7 @@ server <- function(input, output) {
         h4(team_logo, strong(team)),
         lapply(1:nrow(team_players), function(i) {
           player <- team_players[i,]
-          photo_src <- if (!is.na(player$espn_id) && player$espn_id != "") {
-            paste0("https://a.espncdn.com/i/headshots/nfl/players/full/", player$espn_id, ".png")
-          } else {
-            "https://a.espncdn.com/i/headshots/nfl/players/full/default.png"
-          }
           tags$p(
-            tags$img(src = photo_src, class = "player-photo", onerror = "this.src='https://a.espncdn.com/i/headshots/nfl/players/full/default.png'"),
             sprintf(
               "%s: %d FG made (%s), %d FG missed, %d XP made, %d XP missed",
               player$kicker_player_name,
@@ -363,13 +354,7 @@ server <- function(input, output) {
         h4(team_logo, strong(team)),
         lapply(1:nrow(team_players), function(i) {
           player <- team_players[i,]
-          photo_src <- if (!is.na(player$espn_id) && player$espn_id != "") {
-            paste0("https://a.espncdn.com/i/headshots/nfl/players/full/", player$espn_id, ".png")
-          } else {
-            "https://a.espncdn.com/i/headshots/nfl/players/full/default.png"
-          }
           tags$p(
-            tags$img(src = photo_src, class = "player-photo", onerror = "this.src='https://a.espncdn.com/i/headshots/nfl/players/full/default.png'"),
             sprintf(
               "%s: %d punts (%s yds)",
               player$punter_player_name,
