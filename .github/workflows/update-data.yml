@@ -5,8 +5,9 @@ on:
   workflow_dispatch: # Allows manual trigger
 jobs:
   update-data:
-    permissions: contents: write
     runs-on: ubuntu-latest
+    permissions:
+      contents: write # Added to fix permission denied error
     steps:
       - uses: actions/checkout@v4
       - name: Set up Python
