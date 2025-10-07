@@ -22,18 +22,20 @@ ui <- fluidPage(
       .no-data { color: #ef5350; text-align: center; font-size: 1.2em; }
       .team-logo { width: 40px; height: 40px; vertical-align: middle; margin-right: 10px; }
       .player-section { margin-bottom: 15px; padding: 10px; background: #333333; border-radius: 5px; }
+      .leaders-header { text-align: center; color: #ffffff; font-size: 1.8em; margin-bottom: 10px; }
     "))
   ),
   div(class = "header",
-    h1(HTML("The Real (Special) Fantasy <span>Football</span> Challenge"))
+    h1(HTML("The Real Fantasy <span>Football</span> Challenge"))
   ),
   div(class = "container",
     div(class = "week-selector",
       pickerInput("week", "Select Week", choices = 1:5, selected = 1, options = list(style = "btn-primary", width = "200px"))
     ),
+    div(class = "leaders-header", "Kicking Leaders"),
     div(class = "panel-row",
       div(class = "panel",
-        h3("Top 3 Kicker Fantasy Points"),
+        h3("Fantasy Points"),
         conditionalPanel(
           condition = "output.topPoints !== undefined && output.topPoints.length > 0",
           tableOutput("topPoints")
@@ -44,7 +46,7 @@ ui <- fluidPage(
         )
       ),
       div(class = "panel",
-        h3("Top 3 FG Total Distance"),
+        h3("Total Yardage"),
         conditionalPanel(
           condition = "output.topDist !== undefined && output.topDist.length > 0",
           tableOutput("topDist")
@@ -55,7 +57,7 @@ ui <- fluidPage(
         )
       ),
       div(class = "panel",
-        h3("Top 3 Longest FG"),
+        h3("Longest Made"),
         conditionalPanel(
           condition = "output.topLong !== undefined && output.topLong.length > 0",
           tableOutput("topLong")
@@ -66,9 +68,10 @@ ui <- fluidPage(
         )
       )
     ),
+    div(class = "leaders-header", "Punting Leaders"),
     div(class = "panel-row",
       div(class = "panel",
-        h3("Top 3 Total Punts"),
+        h3("Fantasy Points"),
         conditionalPanel(
           condition = "output.topPunts !== undefined && output.topPunts.length > 0",
           tableOutput("topPunts")
@@ -79,7 +82,7 @@ ui <- fluidPage(
         )
       ),
       div(class = "panel",
-        h3("Top 3 Punt Yardage"),
+        h3("Total Yardage"),
         conditionalPanel(
           condition = "output.topYardage !== undefined && output.topYardage.length > 0",
           tableOutput("topYardage")
@@ -90,7 +93,7 @@ ui <- fluidPage(
         )
       ),
       div(class = "panel",
-        h3("Top 3 Longest Punt"),
+        h3("Longest Punt"),
         conditionalPanel(
           condition = "output.topLongPunt !== undefined && output.topLongPunt.length > 0",
           tableOutput("topLongPunt")
