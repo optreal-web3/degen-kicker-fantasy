@@ -19,13 +19,16 @@ ui <- fluidPage(
       .panel-row { display: flex; justify-content: space-between; gap: 20px; margin-bottom: 20px; }
       .panel { background: #2a2a2a; border-radius: 10px; padding: 20px; box-shadow: 0 4px 8px rgba(0,0,0,0.3); flex: 1; display: flex; flex-direction: column; justify-content: center; }
       h3 { color: #bbdefb; font-size: 1.5em; margin-top: 0; text-align: center; }
-      table { width: 100%; border-collapse: collapse; background: #333333; }
-      th, td { padding: 10px; text-align: center; border-bottom: 1px solid #444; }
+      table { width: 90%; border-collapse: collapse; background: #333333; margin: auto; }
+      th, td { padding: 10px; text-align: center; border-bottom: 1px solid #444; vertical-align: middle; }
       th { background: #1976d2; color: #ffffff; }
       .no-data { color: #ef5350; text-align: center; font-size: 1.2em; }
       .team-logo { width: 40px; height: 40px; vertical-align: middle; margin-right: 10px; }
-      .player-section { margin-bottom: 15px; padding: 10px; background: #333333; border-radius: 5px; }
+      .player-section { margin-bottom: 15px; padding: 10px; background: #333333; border-radius: 5px; white-space: normal; word-wrap: break-word; }
       .leaders-header { text-align: center; color: #ffffff; font-size: 1.8em; margin-bottom: 10px; }
+      .details-row { display: flex; gap: 20px; }
+      .details-col { flex: 1; }
+      .how-to-play { margin-bottom: 20px; }
     "))
   ),
   div(class = "header",
@@ -107,8 +110,18 @@ ui <- fluidPage(
         )
       )
     ),
+    div(class = "panel how-to-play",
+      shinyjs::useShinyjs(),
+      actionButton("toggleHowTo", "How to Play"),
+      shinyjs::hidden(
+        div(id = "howToContent",
+          p("Kickers: 3 points per FG made, 1 point per XP made."),
+          p("Punters: 0.05 points per punt yard, -0.05 per return yard (net yards), +0.5 per punt inside 20, +1.5 inside 10, -5 for touchbacks, -4 for blocks.")
+        )
+      )
+    ),
     div(class = "panel",
-      h3("Team Special Teams Details"),
+      h3("Full Team Details"),
       conditionalPanel(
         condition = "output.teamDetails !== undefined",
         uiOutput("teamDetails")
@@ -124,6 +137,10 @@ ui <- fluidPage(
 server <- function(input, output) {
   pbp <- reactive({
     load_pbp(2025)
+  })
+
+  observeEvent(input$toggleHowTo, {
+    shinyjs::toggle("howToContent")
   })
 
   compute_stats <- reactive({
@@ -338,55 +355,114 @@ server <- function(input, output) {
     teams <- unique(c(kicker_details$posteam, punter_details$posteam))
     if (length(teams) == 0) return(NULL)
     teams <- teams[order(team_data$team_name[match(teams, team_data$team_abbr)])]
-    lapply(teams, function(team) {
-      team_kickers <- kicker_details %>% filter(posteam == team)
-      team_punters <- punter_details %>% filter(posteam == team)
-      team_logo <- tags$img(
-        src = paste0("https://a.espncdn.com/i/teamlogos/nfl/500/", team, ".png"), 
-        class = "team-logo",
-        onerror = "this.style.display='none'"
-      )
-      kicker_content <- if (nrow(team_kickers) > 0) {
-        lapply(1:nrow(team_kickers), function(i) {
-          player <- team_kickers[i,]
-          tags$p(
-            sprintf(
-              "Kicker %s: %d FG made (%s), %d FG missed, %d XP made, %d XP missed",
-              player$kicker_player_name,
-              player$made_fg,
-              paste(player$dists[[1]], collapse = ", "),
-              player$missed_fg,
-              player$made_xp,
-              player$missed_xp
-            )
+    mid <- ceiling(length(teams) / 2)
+    col1_teams <- teams[1:mid]
+    col2_teams <- teams[(mid + 1):length(teams)]
+    
+    fluidRow(
+      column(6,
+        lapply(col1_teams, function(team) {
+          team_kickers <- kicker_details %>% filter(posteam == team)
+          team_punters <- punter_details %>% filter(posteam == team)
+          team_logo <- tags$img(
+            src = paste0("https://a.espncdn.com/i/teamlogos/nfl/500/", team, ".png"), 
+            class = "team-logo",
+            onerror = "this.style.display='none'"
+          )
+          kicker_content <- if (nrow(team_kickers) > 0) {
+            lapply(1:nrow(team_kickers), function(i) {
+              player <- team_kickers[i,]
+              tags$p(
+                sprintf(
+                  "Kicker %s: %d FG made (%s), %d FG missed, %d XP made, %d XP missed",
+                  player$kicker_player_name,
+                  player$made_fg,
+                  paste(player$dists[[1]], collapse = ", "),
+                  player$missed_fg,
+                  player$made_xp,
+                  player$missed_xp
+                )
+              )
+            })
+          } else {
+            list(tags$p("No kicker data available"))
+          }
+          punter_content <- if (nrow(team_punters) > 0) {
+            lapply(1:nrow(team_punters), function(i) {
+              player <- team_punters[i,]
+              tags$p(
+                sprintf(
+                  "Punter %s: %d punts (%s yds), %d fantasy points",
+                  player$punter_player_name,
+                  player$punts,
+                  paste(player$dists[[1]], collapse = ", "),
+                  as.integer(player$punt_points)
+                )
+              )
+            })
+          } else {
+            list(tags$p("No punter data available"))
+          }
+          div(
+            class = "player-section",
+            h4(team_logo, strong(team)),
+            kicker_content,
+            punter_content
           )
         })
-      } else {
-        list(tags$p("No kicker data available"))
-      }
-      punter_content <- if (nrow(team_punters) > 0) {
-        lapply(1:nrow(team_punters), function(i) {
-          player <- team_punters[i,]
-          tags$p(
-            sprintf(
-              "Punter %s: %d punts (%s yds), %d fantasy points",
-              player$punter_player_name,
-              player$punts,
-              paste(player$dists[[1]], collapse = ", "),
-              as.integer(player$punt_points)
-            )
+      ),
+      column(6,
+        lapply(col2_teams, function(team) {
+          team_kickers <- kicker_details %>% filter(posteam == team)
+          team_punters <- punter_details %>% filter(posteam == team)
+          team_logo <- tags$img(
+            src = paste0("https://a.espncdn.com/i/teamlogos/nfl/500/", team, ".png"), 
+            class = "team-logo",
+            onerror = "this.style.display='none'"
+          )
+          kicker_content <- if (nrow(team_kickers) > 0) {
+            lapply(1:nrow(team_kickers), function(i) {
+              player <- team_kickers[i,]
+              tags$p(
+                sprintf(
+                  "Kicker %s: %d FG made (%s), %d FG missed, %d XP made, %d XP missed",
+                  player$kicker_player_name,
+                  player$made_fg,
+                  paste(player$dists[[1]], collapse = ", "),
+                  player$missed_fg,
+                  player$made_xp,
+                  player$missed_xp
+                )
+              )
+            })
+          } else {
+            list(tags$p("No kicker data available"))
+          }
+          punter_content <- if (nrow(team_punters) > 0) {
+            lapply(1:nrow(team_punters), function(i) {
+              player <- team_punters[i,]
+              tags$p(
+                sprintf(
+                  "Punter %s: %d punts (%s yds), %d fantasy points",
+                  player$punter_player_name,
+                  player$punts,
+                  paste(player$dists[[1]], collapse = ", "),
+                  as.integer(player$punt_points)
+                )
+              )
+            })
+          } else {
+            list(tags$p("No punter data available"))
+          }
+          div(
+            class = "player-section",
+            h4(team_logo, strong(team)),
+            kicker_content,
+            punter_content
           )
         })
-      } else {
-        list(tags$p("No punter data available"))
-      }
-      div(
-        class = "player-section",
-        h4(team_logo, strong(team)),
-        kicker_content,
-        punter_content
       )
-    })
+    )
   })
 }
 
