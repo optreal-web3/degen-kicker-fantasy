@@ -4,18 +4,31 @@ library(dplyr)
 library(nflfastR)
 library(shinyjs)
 
-# Load team data for city names
+# Suppress nflreadr cache warning
+options(nflreadr.verbose = FALSE)
+
+# Load team data
 team_data <- tryCatch({
   nflfastR::teams_colors_logos
 }, error = function(e) {
   data.frame(team_abbr = character(), team_name = character())
 })
 
-# Load pbp data once at startup
+# Load pbp data with fallback to local CSV if network fails
 pbp_data <- tryCatch({
-  load_pbp(2025)
+  data <- load_pbp(2025)
+  if (nrow(data) == 0 || !all(c("week", "play_type", "kick_distance") %in% names(data))) {
+    stop("Invalid 2025 data")
+  }
+  data
 }, error = function(e) {
-  load_pbp(2024) # Fallback to 2024
+  message("Failed to load 2025 data, falling back to 2024 or empty data.")
+  data <- load_pbp(2024)
+  if (nrow(data) == 0 || !all(c("week", "play_type", "kick_distance") %in% names(data))) {
+    data.frame() # Empty fallback
+  } else {
+    data
+  }
 })
 
 # Scoring functions
@@ -125,6 +138,7 @@ ui <- fluidPage(
 server <- function(input, output, session) {
   # Dynamic week choices
   available_weeks <- reactive({
+    if (nrow(pbp_data) == 0) return(1:5) # Fallback if no data
     unique(pbp_data$week)
   })
   
@@ -144,6 +158,7 @@ server <- function(input, output, session) {
 
   # Compute stats for selected week
   calc_team_stats <- reactive({
+    req(nrow(pbp_data) > 0)
     week_num <- as.integer(gsub("Week ", "", input$week))
     
     # Kicker stats
@@ -178,7 +193,7 @@ server <- function(input, output, session) {
           missed_fg = sum(play_type == "field_goal" & field_goal_result != "made" & !is.na(field_goal_result)),
           made_xp = sum(play_type == "extra_point" & extra_point_result == "good"),
           missed_xp = sum(play_type == "extra_point" & extra_point_result != "good"),
-          dists = list(kick_distance[play_type == "field_goal" & field_goal_result == "made"]),
+          dists = list(as.list(kick_distance[play_type == "field_goal" & field_goal_result == "made"])),
           kick_points = sum(kick_points, na.rm = TRUE),
           .groups = 'drop'
         ) %>%
@@ -214,7 +229,7 @@ server <- function(input, output, session) {
         group_by(posteam, punter_player_name) %>%
         summarise(
           punts = n(),
-          dists = list(kick_distance),
+          dists = list(as.list(kick_distance)),
           punt_points = sum(calc_punt_points(
             kick_distance, return_yards, punt_inside_twenty, yardline_100, punt_blocked, touchback
           )),
@@ -250,10 +265,12 @@ server <- function(input, output, session) {
   
   # Reactive flags for data availability
   has_leaderboard <- reactive({
+    req(nrow(pbp_data) > 0)
     nrow(calc_team_stats()$team_stats) > 0
   })
   
   has_team_details <- reactive({
+    req(nrow(pbp_data) > 0)
     nrow(calc_team_stats()$kicker_details) > 0 || nrow(calc_team_stats()$punter_details) > 0
   })
   
