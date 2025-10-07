@@ -243,4 +243,3 @@ document.addEventListener('DOMContentLoaded', async function() {
     weekSelect.addEventListener('change', loadWeek);
     await loadWeek(); // Load initial week
 });
-```
