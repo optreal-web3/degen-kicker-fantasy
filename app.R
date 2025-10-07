@@ -3,6 +3,9 @@ library(shinyWidgets)
 library(dplyr)
 library(nflfastR)
 
+# Load team data for city names
+team_data <- teams_colors_logos
+
 ui <- fluidPage(
   tags$head(
     tags$link(rel = "stylesheet", href = "https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap"),
@@ -14,10 +17,10 @@ ui <- fluidPage(
       .container { max-width: 1500px; margin: auto; padding: 20px; }
       .week-selector { display: flex; justify-content: center; margin-bottom: 20px; }
       .panel-row { display: flex; justify-content: space-between; gap: 20px; margin-bottom: 20px; }
-      .panel { background: #2a2a2a; border-radius: 10px; padding: 20px; box-shadow: 0 4px 8px rgba(0,0,0,0.3); flex: 1; }
-      h3 { color: #bbdefb; font-size: 1.5em; margin-top: 0; }
+      .panel { background: #2a2a2a; border-radius: 10px; padding: 20px; box-shadow: 0 4px 8px rgba(0,0,0,0.3); flex: 1; display: flex; flex-direction: column; justify-content: center; }
+      h3 { color: #bbdefb; font-size: 1.5em; margin-top: 0; text-align: center; }
       table { width: 100%; border-collapse: collapse; background: #333333; }
-      th, td { padding: 10px; text-align: left; border-bottom: 1px solid #444; }
+      th, td { padding: 10px; text-align: center; border-bottom: 1px solid #444; }
       th { background: #1976d2; color: #ffffff; }
       .no-data { color: #ef5350; text-align: center; font-size: 1.2em; }
       .team-logo { width: 40px; height: 40px; vertical-align: middle; margin-right: 10px; }
@@ -143,7 +146,9 @@ server <- function(input, output) {
           longest = max(kick_distance[play_type == "field_goal"], na.rm = TRUE),
           .groups = 'drop'
         ) %>%
-        filter(fg_points > 0)
+        filter(fg_points > 0) %>%
+        left_join(team_data %>% select(team_abbr, team_city), by = c("posteam" = "team_abbr")) %>%
+        arrange(team_city)
       
       kicker_details <- fg_data %>%
         group_by(posteam, kicker_player_name) %>%
@@ -155,7 +160,9 @@ server <- function(input, output) {
           dists = list(kick_distance[play_type == "field_goal" & field_goal_result == "made"]),
           .groups = 'drop'
         ) %>%
-        filter(made_fg + made_xp > 0)
+        filter(made_fg + made_xp > 0) %>%
+        left_join(team_data %>% select(team_abbr, team_city), by = c("posteam" = "team_abbr")) %>%
+        arrange(team_city)
     }
     
     # Punter stats
@@ -170,17 +177,37 @@ server <- function(input, output) {
           total_punts = n(),
           total_yardage = sum(kick_distance),
           longest_punt = max(kick_distance),
+          punt_points = sum(
+            (kick_distance * 0.05) - 
+            (ifelse(is.na(return_yards), 0, return_yards) * 0.05) + 
+            (punt_inside_twenty * 0.5) + 
+            (ifelse(yardline_100 <= 10 & punt_blocked == 0 & touchback == 0 & is.na(return_yards), 1.5, 0)) - 
+            (touchback * 5) - 
+            (punt_blocked * 4)
+          ),
           .groups = 'drop'
         ) %>%
-        filter(total_punts > 0)
+        filter(total_punts > 0) %>%
+        left_join(team_data %>% select(team_abbr, team_city), by = c("posteam" = "team_abbr")) %>%
+        arrange(team_city)
       
       punter_details <- punt_data %>%
         group_by(posteam, punter_player_name) %>%
         summarise(
           punts = n(),
           dists = list(kick_distance),
+          punt_points = sum(
+            (kick_distance * 0.05) - 
+            (ifelse(is.na(return_yards), 0, return_yards) * 0.05) + 
+            (punt_inside_twenty * 0.5) + 
+            (ifelse(yardline_100 <= 10 & punt_blocked == 0 & touchback == 0 & is.na(return_yards), 1.5, 0)) - 
+            (touchback * 5) - 
+            (punt_blocked * 4)
+          ),
           .groups = 'drop'
-        )
+        ) %>%
+        left_join(team_data %>% select(team_abbr, team_city), by = c("posteam" = "team_abbr")) %>%
+        arrange(team_city)
     }
     
     list(
@@ -203,7 +230,8 @@ server <- function(input, output) {
           posteam, 
           '.png" class="team-logo" onerror="this.style.display=\'none\'"> ', 
           posteam
-        )
+        ),
+        fg_points = as.integer(fg_points)
       ) %>%
       select(posteam_display, fg_points) %>%
       `colnames<-`(c("Team", "PTS"))
@@ -221,7 +249,8 @@ server <- function(input, output) {
           posteam, 
           '.png" class="team-logo" onerror="this.style.display=\'none\'"> ', 
           posteam
-        )
+        ),
+        total_dist = as.integer(total_dist)
       ) %>%
       select(posteam_display, total_dist) %>%
       `colnames<-`(c("Team", "YDS"))
@@ -239,7 +268,8 @@ server <- function(input, output) {
           posteam, 
           '.png" class="team-logo" onerror="this.style.display=\'none\'"> ', 
           posteam
-        )
+        ),
+        longest = as.integer(longest)
       ) %>%
       select(posteam_display, longest) %>%
       `colnames<-`(c("Team", "LONG"))
@@ -249,7 +279,7 @@ server <- function(input, output) {
     stats <- compute_stats()$punt_team_stats
     if (nrow(stats) == 0) return(NULL)
     stats %>%
-      arrange(desc(total_punts)) %>%
+      arrange(desc(punt_points)) %>%
       head(3) %>%
       mutate(
         posteam_display = paste0(
@@ -257,10 +287,11 @@ server <- function(input, output) {
           posteam, 
           '.png" class="team-logo" onerror="this.style.display=\'none\'"> ', 
           posteam
-        )
+        ),
+        punt_points = as.integer(punt_points)
       ) %>%
-      select(posteam_display, total_punts) %>%
-      `colnames<-`(c("Team", "PUNTS"))
+      select(posteam_display, punt_points) %>%
+      `colnames<-`(c("Team", "PTS"))
   }, sanitize.text.function = function(x) x, escape = FALSE)
 
   output$topYardage <- renderTable({
@@ -275,7 +306,8 @@ server <- function(input, output) {
           posteam, 
           '.png" class="team-logo" onerror="this.style.display=\'none\'"> ', 
           posteam
-        )
+        ),
+        total_yardage = as.integer(total_yardage)
       ) %>%
       select(posteam_display, total_yardage) %>%
       `colnames<-`(c("Team", "YDS"))
@@ -293,7 +325,8 @@ server <- function(input, output) {
           posteam, 
           '.png" class="team-logo" onerror="this.style.display=\'none\'"> ', 
           posteam
-        )
+        ),
+        longest_punt = as.integer(longest_punt)
       ) %>%
       select(posteam_display, longest_punt) %>%
       `colnames<-`(c("Team", "LONG"))
@@ -304,6 +337,7 @@ server <- function(input, output) {
     punter_details <- compute_stats()$punter_details
     teams <- unique(c(kicker_details$posteam, punter_details$posteam))
     if (length(teams) == 0) return(NULL)
+    teams <- teams[order(team_data$team_city[match(teams, team_data$team_abbr)])]
     lapply(teams, function(team) {
       team_kickers <- kicker_details %>% filter(posteam == team)
       team_punters <- punter_details %>% filter(posteam == team)
@@ -335,10 +369,11 @@ server <- function(input, output) {
           player <- team_punters[i,]
           tags$p(
             sprintf(
-              "Punter %s: %d punts (%s yds)",
+              "Punter %s: %d punts (%s yds), %d fantasy points",
               player$punter_player_name,
               player$punts,
-              paste(player$dists[[1]], collapse = ", ")
+              paste(player$dists[[1]], collapse = ", "),
+              as.integer(player$punt_points)
             )
           )
         })
