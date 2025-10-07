@@ -1,0 +1,28 @@
+name: Update Kicker Data
+on:
+  schedule:
+    - cron: '0 6 * * 2' # Tuesday 6 AM UTC (~2 AM EDT, post-MNF)
+  workflow_dispatch: # Allows manual trigger
+jobs:
+  update-data:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
+        run: pip install requests
+      - name: Run Python script
+        run: python generate_kicker_data.py
+      - name: Commit and push changes
+        run: |
+          git config user.name "GitHub Action"
+          git config user.email "action@github.com"
+          git add data/*
+          git commit -m "Update kicker data for week $(date +%V)" || echo "No changes to commit"
+          git push origin main
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+```
