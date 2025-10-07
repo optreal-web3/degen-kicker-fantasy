@@ -17,6 +17,7 @@ ui <- fluidPage(
       th { background: #3498db; color: white; }
       pre { background: #ecf0f1; padding: 15px; border-radius: 5px; }
       .week-selector { display: flex; justify-content: center; }
+      .no-data { color: #e74c3c; text-align: center; font-size: 1.2em; }
     "))
   ),
   div(class = "container",
@@ -26,19 +27,47 @@ ui <- fluidPage(
     ),
     div(class = "panel",
       h3("Top 3 FG Fantasy Points"),
-      tableOutput("topPoints")
+      conditionalPanel(
+        condition = "output.topPoints.length > 0",
+        tableOutput("topPoints")
+      ),
+      conditionalPanel(
+        condition = "output.topPoints.length == 0",
+        div(class = "no-data", "No data available for selected week")
+      )
     ),
     div(class = "panel",
       h3("Top 3 FG Total Distance"),
-      tableOutput("topDist")
+      conditionalPanel(
+        condition = "output.topDist.length > 0",
+        tableOutput("topDist")
+      ),
+      conditionalPanel(
+        condition = "output.topDist.length == 0",
+        div(class = "no-data", "No data available for selected week")
+      )
     ),
     div(class = "panel",
       h3("Top 3 Longest FG"),
-      tableOutput("topLong")
+      conditionalPanel(
+        condition = "output.topLong.length > 0",
+        tableOutput("topLong")
+      ),
+      conditionalPanel(
+        condition = "output.topLong.length == 0",
+        div(class = "no-data", "No data available for selected week")
+      )
     ),
     div(class = "panel",
       h3("Team Details"),
-      verbatimTextOutput("details")
+      conditionalPanel(
+        condition = "output.details",
+        verbatimTextOutput("details")
+      ),
+      conditionalPanel(
+        condition = "!output.details",
+        div(class = "no-data", "No team details available for selected week")
+      )
     )
   )
 )
@@ -51,6 +80,9 @@ server <- function(input, output) {
   compute_stats <- reactive({
     week <- as.integer(input$week)
     fg <- pbp() %>% filter(week == week & play_type == "field_goal" & kick_distance > 0)
+    if (nrow(fg) == 0) {
+      return(list(team_stats = data.frame(), kickers = data.frame()))
+    }
     fg_made <- fg %>% filter(field_goal_result == "made")
     team_stats <- fg_made %>% group_by(posteam) %>% summarise(
       fg_points = n() * 3,
@@ -84,6 +116,7 @@ server <- function(input, output) {
 
   output$details <- renderPrint({
     kickers <- compute_stats()$kickers
+    if (nrow(kickers) == 0) return(NULL)
     for (team in unique(kickers$posteam)) {
       cat(team, "\n")
       team_kickers <- kickers %>% filter(posteam == team)
