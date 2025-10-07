@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Degen Kicker Fantasy</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&family=Bebas+Neue&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/css/styles.css">
+    <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
     <div class="page-title">
@@ -13,39 +13,25 @@
         <span>Degen Kicker Fantasy</span>
         <img src="https://i.ibb.co/8nDRc40j/KOD-Logo-Icon-400x400.png" alt="KOD Logo" class="header-logo">
     </div>
-    <div class="week-selector">
-        <label for="week-select">Select Week:</label>
-        <select id="week-select">
-            <option value="1">Week 1</option>
-            <option value="2">Week 2</option>
-            <option value="3">Week 3</option>
-            <option value="4">Week 4</option>
-            <option value="5" selected>Week 5</option>
-            <!-- Add up to Week 18 as season progresses -->
-        </select>
-    </div>
     <div class="kicker-showcase">
         <div class="cards">
-            <div class="kicker-card" data-kicker="top-pts">
-                <img src="https://a.espncdn.com/i/headshots/nfl/players/full/3953687.png" alt="Top Points Kicker">
-                <h3>Top Points</h3>
-                <img src="https://a.espncdn.com/i/teamlogos/nfl/500/dal.png" alt="Team Logo" class="team-logo">
-                <p>Fantasy PTS: Loading...</p>
-                <p>FG Made: Loading...</p>
+            <div class="kicker-card">
+                <img src="https://a.espncdn.com/i/headshots/nfl/players/full/3953687.png" alt="Brandon Aubrey">
+                <h3>Brandon Aubrey</h3>
+                <img src="https://a.espncdn.com/i/teamlogos/nfl/500/dal.png" alt="Dallas Cowboys Logo" class="team-logo">
+                <p>Total PTS: 50 points</p>
             </div>
-            <div class="kicker-card" data-kicker="top-yds">
-                <img src="https://a.espncdn.com/i/headshots/nfl/players/full/4034949.png" alt="Top Yards Kicker">
-                <h3>Top Yards</h3>
-                <img src="https://a.espncdn.com/i/teamlogos/nfl/500/sf.png" alt="Team Logo" class="team-logo">
-                <p>Total YDS: Loading...</p>
-                <p>FG Made: Loading...</p>
+            <div class="kicker-card">
+                <img src="https://a.espncdn.com/i/headshots/nfl/players/full/4034949.png" alt="Eddy Pineiro">
+                <h3>Eddy Pineiro</h3>
+                <img src="https://a.espncdn.com/i/teamlogos/nfl/500/sf.png" alt="San Francisco 49ers Logo" class="team-logo">
+                <p>Total YDS: 280 yards</p>
             </div>
-            <div class="kicker-card" data-kicker="top-long">
-                <img src="https://a.espncdn.com/i/headshots/nfl/players/full/4571557.png" alt="Top Long Kicker">
-                <h3>Top Long</h3>
-                <img src="https://a.espncdn.com/i/teamlogos/nfl/500/ind.png" alt="Team Logo" class="team-logo">
-                <p>LONGEST: Loading...</p>
-                <p>FG Made: Loading...</p>
+            <div class="kicker-card">
+                <img src="https://a.espncdn.com/i/headshots/nfl/players/full/4571557.png" alt="Spencer Shrader">
+                <h3>Spencer Shrader</h3>
+                <img src="https://a.espncdn.com/i/teamlogos/nfl/500/ind.png" alt="Indianapolis Colts Logo" class="team-logo">
+                <p>LONGEST: 60 yards</p>
             </div>
         </div>
     </div>
@@ -59,11 +45,121 @@
                         <th class="sortable">PTS</th>
                         <th class="sortable">YDS</th>
                         <th class="sortable">LONG</th>
-                        <th class="sortable">FG Made</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <!-- Populated dynamically -->
+                    <tr class="wallet-row" data-wallet="0x1a2b3...a6b7c">
+                        <td>0x1a2b3...a6b7c</td>
+                        <td>
+                            <img src="https://a.espncdn.com/i/teamlogos/nfl/500/buf.png" alt="Buffalo Bills Logo" class="team-logo">
+                            <img src="https://a.espncdn.com/i/teamlogos/nfl/500/cin.png" alt="Cincinnati Bengals Logo" class="team-logo">
+                            <img src="https://a.espncdn.com/i/teamlogos/nfl/500/cle.png" alt="Cleveland Browns Logo" class="team-logo">
+                        </td>
+                        <td class="highlight-cell">150</td>
+                        <td>600</td>
+                        <td>55</td>
+                    </tr>
+                    <tr class="kicker-details" data-wallet="0x1a2b3...a6b7c">
+                        <td colspan="5">Kicker X (50 pts, 200 yds, 55 long), Kicker Y (60 pts, 250 yds, 52 long), Kicker Z (40 pts, 150 yds, 48 long)</td>
+                    </tr>
+                    <tr class="wallet-row" data-wallet="0x2b3c4...b7c8d">
+                        <td>0x2b3c4...b7c8d</td>
+                        <td>
+                            <img src="https://a.espncdn.com/i/teamlogos/nfl/500/den.png" alt="Denver Broncos Logo" class="team-logo">
+                            <img src="https://a.espncdn.com/i/teamlogos/nfl/500/ind.png" alt="Indianapolis Colts Logo" class="team-logo">
+                            <img src="https://a.espncdn.com/i/teamlogos/nfl/500/jax.png" alt="Jacksonville Jaguars Logo" class="team-logo">
+                        </td>
+                        <td>140</td>
+                        <td class="highlight-cell">650</td>
+                        <td>52</td>
+                    </tr>
+                    <tr class="kicker-details" data-wallet="0x2b3c4...b7c8d">
+                        <td colspan="5">Kicker P (45 pts, 220 yds, 52 long), Kicker Q (55 pts, 280 yds, 50 long), Kicker R (40 pts, 150 yds, 48 long)</td>
+                    </tr>
+                    <tr class="wallet-row" data-wallet="0x3c4d5...c8d9e">
+                        <td>0x3c4d5...c8d9e</td>
+                        <td>
+                            <img src="https://a.espncdn.com/i/teamlogos/nfl/500/kc.png" alt="Kansas City Chiefs Logo" class="team-logo">
+                            <img src="https://a.espncdn.com/i/teamlogos/nfl/500/lac.png" alt="Los Angeles Chargers Logo" class="team-logo">
+                            <img src="https://a.espncdn.com/i/teamlogos/nfl/500/lv.png" alt="Las Vegas Raiders Logo" class="team-logo">
+                        </td>
+                        <td>130</td>
+                        <td>580</td>
+                        <td class="highlight-cell">60</td>
+                    </tr>
+                    <tr class="kicker-details" data-wallet="0x3c4d5...c8d9e">
+                        <td colspan="5">Kicker M (50 pts, 200 yds, 60 long), Kicker N (40 pts, 180 yds, 55 long), Kicker O (40 pts, 200 yds, 50 long)</td>
+                    </tr>
+                    <tr class="wallet-row" data-wallet="0x4d5e6...d9e0f">
+                        <td>0x4d5e6...d9e0f</td>
+                        <td>
+                            <img src="https://a.espncdn.com/i/teamlogos/nfl/500/mia.png" alt="Miami Dolphins Logo" class="team-logo">
+                            <img src="https://a.espncdn.com/i/teamlogos/nfl/500/min.png" alt="Minnesota Vikings Logo" class="team-logo">
+                            <img src="https://a.espncdn.com/i/teamlogos/nfl/500/ne.png" alt="New England Patriots Logo" class="team-logo">
+                        </td>
+                        <td>120</td>
+                        <td>550</td>
+                        <td>50</td>
+                    </tr>
+                    <tr class="kicker-details" data-wallet="0x4d5e6...d9e0f">
+                        <td colspan="5">Kicker A (40 pts, 150 yds, 50 long), Kicker B (40 pts, 200 yds, 48 long), Kicker C (40 pts, 200 yds, 45 long)</td>
+                    </tr>
+                    <tr class="wallet-row" data-wallet="0x5e6f7...e0f1a">
+                        <td>0x5e6f7...e0f1a</td>
+                        <td>
+                            <img src="https://a.espncdn.com/i/teamlogos/nfl/500/nyj.png" alt="New York Jets Logo" class="team-logo">
+                            <img src="https://a.espncdn.com/i/teamlogos/nfl/500/pit.png" alt="Pittsburgh Steelers Logo" class="team-logo">
+                            <img src="https://a.espncdn.com/i/teamlogos/nfl/500/sea.png" alt="Seattle Seahawks Logo" class="team-logo">
+                        </td>
+                        <td>110</td>
+                        <td>520</td>
+                        <td>48</td>
+                    </tr>
+                    <tr class="kicker-details" data-wallet="0x5e6f7...e0f1a">
+                        <td colspan="5">Kicker D (35 pts, 140 yds, 48 long), Kicker E (35 pts, 180 yds, 46 long), Kicker F (40 pts, 200 yds, 44 long)</td>
+                    </tr>
+                    <tr class="wallet-row" data-wallet="0x6f7a8...f1a2b">
+                        <td>0x6f7a8...f1a2b</td>
+                        <td>
+                            <img src="https://a.espncdn.com/i/teamlogos/nfl/500/ten.png" alt="Tennessee Titans Logo" class="team-logo">
+                            <img src="https://a.espncdn.com/i/teamlogos/nfl/500/buf.png" alt="Buffalo Bills Logo" class="team-logo">
+                            <img src="https://a.espncdn.com/i/teamlogos/nfl/500/cin.png" alt="Cincinnati Bengals Logo" class="team-logo">
+                        </td>
+                        <td>105</td>
+                        <td>500</td>
+                        <td>47</td>
+                    </tr>
+                    <tr class="kicker-details" data-wallet="0x6f7a8...f1a2b">
+                        <td colspan="5">Kicker G (30 pts, 130 yds, 47 long), Kicker H (35 pts, 170 yds, 45 long), Kicker I (40 pts, 200 yds, 43 long)</td>
+                    </tr>
+                    <tr class="wallet-row" data-wallet="0x7a8b9...a2b3c">
+                        <td>0x7a8b9...a2b3c</td>
+                        <td>
+                            <img src="https://a.espncdn.com/i/teamlogos/nfl/500/cle.png" alt="Cleveland Browns Logo" class="team-logo">
+                            <img src="https://a.espncdn.com/i/teamlogos/nfl/500/den.png" alt="Denver Broncos Logo" class="team-logo">
+                            <img src="https://a.espncdn.com/i/teamlogos/nfl/500/ind.png" alt="Indianapolis Colts Logo" class="team-logo">
+                        </td>
+                        <td>100</td>
+                        <td>480</td>
+                        <td>45</td>
+                    </tr>
+                    <tr class="kicker-details" data-wallet="0x7a8b9...a2b3c">
+                        <td colspan="5">Kicker J (25 pts, 120 yds, 45 long), Kicker K (35 pts, 160 yds, 43 long), Kicker L (40 pts, 200 yds, 42 long)</td>
+                    </tr>
+                    <tr class="wallet-row" data-wallet="0x8b9c0...b3c4d">
+                        <td>0x8b9c0...b3c4d</td>
+                        <td>
+                            <img src="https://a.espncdn.com/i/teamlogos/nfl/500/jax.png" alt="Jacksonville Jaguars Logo" class="team-logo">
+                            <img src="https://a.espncdn.com/i/teamlogos/nfl/500/kc.png" alt="Kansas City Chiefs Logo" class="team-logo">
+                            <img src="https://a.espncdn.com/i/teamlogos/nfl/500/lv.png" alt="Las Vegas Raiders Logo" class="team-logo">
+                        </td>
+                        <td>95</td>
+                        <td>460</td>
+                        <td>44</td>
+                    </tr>
+                    <tr class="kicker-details" data-wallet="0x8b9c0...b3c4d">
+                        <td colspan="5">Kicker M (20 pts, 110 yds, 44 long), Kicker N (35 pts, 150 yds, 42 long), Kicker O (40 pts, 200 yds, 41 long)</td>
+                    </tr>
                 </tbody>
             </table>
         </div>
@@ -73,6 +169,6 @@
     <footer>
         <p>© 2025 Degen Kicker Fantasy. All rights reserved. | Contact: support@degenkicker.com | Terms & Privacy</p>
     </footer>
-    <script src="/js/script.js"></script>
+    <script src="js/script.js"></script>
 </body>
 </html>
