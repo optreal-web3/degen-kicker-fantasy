@@ -1,16 +1,7 @@
 library(shiny)
 library(shinyWidgets)
 library(dplyr)
-
-# Mock data
-mock_data <- data.frame(
-  week = c(1,1,1,2,2,3,3,4,4,5),
-  posteam = c("NE","KC","DAL","NE","KC","DAL","NE","KC","DAL","NE"),
-  kicker_player_name = c("K1","K2","K3","K1","K2","K3","K1","K2","K3","K1"),
-  play_type = rep("field_goal", 10),
-  kick_distance = c(45,50,30,40,55,35,48,52,33,42),
-  field_goal_result = c("made","made","missed","made","missed","made","made","made","made","missed")
-)
+library(nflfastR)
 
 ui <- fluidPage(
   tags$head(
@@ -29,7 +20,7 @@ ui <- fluidPage(
     "))
   ),
   div(class = "container",
-    h1("NFL 2025 Kicker Stats Preview"),
+    h1("NFL 2025 Kicker Stats"),
     div(class = "week-selector",
       pickerInput("week", NULL, choices = 1:5, selected = 1, options = list(`style` = "btn-primary"))
     ),
@@ -53,9 +44,13 @@ ui <- fluidPage(
 )
 
 server <- function(input, output) {
+  pbp <- reactive({
+    load_pbp(2025)
+  })
+
   compute_stats <- reactive({
     week <- as.integer(input$week)
-    fg <- mock_data %>% filter(week == week & play_type == "field_goal" & kick_distance > 0)
+    fg <- pbp() %>% filter(week == week & play_type == "field_goal" & kick_distance > 0)
     fg_made <- fg %>% filter(field_goal_result == "made")
     team_stats <- fg_made %>% group_by(posteam) %>% summarise(
       fg_points = n() * 3,
