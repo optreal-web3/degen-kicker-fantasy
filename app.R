@@ -80,21 +80,24 @@ server <- function(input, output) {
 
   compute_stats <- reactive({
     week_num <- as.integer(input$week)
-    fg <- pbp() %>% filter(week == week_num & play_type == "field_goal" & kick_distance > 0)
+    # Filter for field goals and extra points
+    fg <- pbp() %>% filter(week == week_num & play_type %in% c("field_goal", "extra_point") & kick_distance > 0)
     if (nrow(fg) == 0) {
       return(list(team_stats = data.frame(), kickers = data.frame()))
     }
-    fg_made <- fg %>% filter(field_goal_result == "made")
+    fg_made <- fg %>% filter((play_type == "field_goal" & field_goal_result == "made") | (play_type == "extra_point" & extra_point_result == "good"))
     team_stats <- fg_made %>% group_by(posteam) %>% summarise(
-      fg_points = n() * 3,
-      total_dist = sum(kick_distance),
-      longest = max(kick_distance),
+      fg_points = sum(ifelse(play_type == "field_goal", 3, 1)),
+      total_dist = sum(kick_distance[play_type == "field_goal"]),
+      longest = max(kick_distance[play_type == "field_goal"], na.rm = TRUE),
       .groups = 'drop'
     ) %>% filter(fg_points > 0)
     kickers <- fg %>% group_by(posteam, kicker_player_name) %>% summarise(
-      made = sum(field_goal_result == "made"),
-      missed = sum(field_goal_result != "made"),
-      dists = list(kick_distance[field_goal_result == "made"]),
+      made_fg = sum(play_type == "field_goal" & field_goal_result == "made"),
+      missed_fg = sum(play_type == "field_goal" & field_goal_result != "made"),
+      made_xp = sum(play_type == "extra_point" & extra_point_result == "good"),
+      missed_xp = sum(play_type == "extra_point" & extra_point_result != "good"),
+      dists = list(kick_distance[play_type == "field_goal" & field_goal_result == "made"]),
       .groups = 'drop'
     )
     list(team_stats = team_stats, kickers = kickers)
@@ -123,7 +126,7 @@ server <- function(input, output) {
       team_kickers <- kickers %>% filter(posteam == team)
       for (i in 1:nrow(team_kickers)) {
         k <- team_kickers[i,]
-        cat(k$kicker_player_name, ": ", k$made, " made (", paste(k$dists[[1]], collapse=", "), "), ", k$missed, " missed\n")
+        cat(k$kicker_player_name, ": ", k$made_fg, " FG made (", paste(k$dists[[1]], collapse=", "), "), ", k$missed_fg, " FG missed, ", k$made_xp, " XP made, ", k$missed_xp, " XP missed\n")
       }
       cat("\n")
     }
