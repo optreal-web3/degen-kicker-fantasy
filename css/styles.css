@@ -36,32 +36,6 @@ body {
     height: 50px;
 }
 
-/* Week Selector */
-.week-selector {
-    text-align: center;
-    margin: 10px auto;
-    max-width: 900px;
-    width: 100%;
-}
-
-.week-selector label {
-    font-family: 'Roboto', sans-serif;
-    font-size: 1.2em;
-    color: #e0e0e0;
-    margin-right: 10px;
-}
-
-.week-selector select {
-    font-family: 'Roboto', sans-serif;
-    font-size: 1em;
-    padding: 5px;
-    background: #222;
-    color: #e0e0e0;
-    border: 2px solid #a855f7;
-    border-radius: 5px;
-    cursor: pointer;
-}
-
 /* Kicker Showcase */
 .kicker-showcase {
     margin: 20px auto;
@@ -104,6 +78,7 @@ body {
     color: #a855f7;
     margin: 10px 0 5px;
     text-shadow: 0 0 3px rgba(168, 85, 247, 0.3);
+    margin-right: 10px;
 }
 
 .kicker-card .team-logo {
@@ -152,11 +127,9 @@ body {
 .table th:nth-child(3),
 .table th:nth-child(4),
 .table th:nth-child(5),
-.table th:nth-child(6),
 .table td:nth-child(3),
 .table td:nth-child(4),
-.table td:nth-child(5),
-.table td:nth-child(6) {
+.table td:nth-child(5) {
     width: 80px;
 }
 
@@ -246,13 +219,6 @@ footer p {
     .header-logo {
         margin: 5px 0;
     }
-    .week-selector {
-        margin: 10px auto;
-    }
-    .week-selector select {
-        width: 100%;
-        max-width: 200px;
-    }
     .hero-quote {
         font-size: 1.8em;
         margin: 10px auto;
@@ -279,11 +245,9 @@ footer p {
     .table th:nth-child(3),
     .table th:nth-child(4),
     .table th:nth-child(5),
-    .table th:nth-child(6),
     .table td:nth-child(3),
     .table td:nth-child(4),
-    .table td:nth-child(5),
-    .table td:nth-child(6) {
+    .table td:nth-child(5) {
         width: auto;
     }
     .team-logo {
