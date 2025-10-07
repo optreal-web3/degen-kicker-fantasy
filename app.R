@@ -2,6 +2,7 @@ library(shiny)
 library(shinyWidgets)
 library(dplyr)
 library(nflfastR)
+library(nflreadr)
 
 # Load players once for IDs
 players_df <- load_players()
@@ -32,7 +33,6 @@ ui <- fluidPage(
     div(class = "week-selector",
       pickerInput("week", "Select Week", choices = 1:5, selected = 1, options = list(style = "btn-primary", width = "200px"))
     ),
-    # Kicker sections
     div(class = "panel",
       h3("Top 3 Kicker Fantasy Points"),
       conditionalPanel(
@@ -77,7 +77,6 @@ ui <- fluidPage(
         div(class = "no-data", "No kicker details available")
       )
     ),
-    # Punter sections
     div(class = "panel",
       h3("Top 3 Total Punts"),
       conditionalPanel(
@@ -155,7 +154,7 @@ server <- function(input, output) {
         filter(fg_points > 0)
       
       kicker_details <- fg_data %>%
-        left_join(players_df %>% select(player_display_name, espn_id), by = c("kicker_player_name" = "player_display_name")) %>%
+        left_join(players_df %>% select(display_name, espn_id), by = c("kicker_player_name" = "display_name")) %>%
         group_by(posteam, kicker_player_name, espn_id) %>%
         summarise(
           made_fg = sum(play_type == "field_goal" & field_goal_result == "made"),
@@ -185,7 +184,7 @@ server <- function(input, output) {
         filter(total_punts > 0)
       
       punter_details <- punt_data %>%
-        left_join(players_df %>% select(player_display_name, espn_id), by = c("punter_player_name" = "player_display_name")) %>%
+        left_join(players_df %>% select(display_name, espn_id), by = c("punter_player_name" = "display_name")) %>%
         group_by(posteam, punter_player_name, espn_id) %>%
         summarise(
           punts = n(),
