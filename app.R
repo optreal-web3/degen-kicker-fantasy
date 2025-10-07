@@ -9,119 +9,109 @@ ui <- fluidPage(
     tags$style(HTML("
       body { font-family: 'Roboto', sans-serif; background: #121212; color: #e0e0e0; }
       .header { background: #1e1e1e; padding: 15px; text-align: center; border-bottom: 2px solid #1976d2; margin-bottom: 20px; }
-      .header h1 { color: #ffffff; font-size: 2.5em; margin: 0; }
+      .header h1 { color: #ffffff; font-size: 2em; margin: 0; max-width: 1500px; }
       .header h1 span { font-weight: bold; font-style: italic; }
-      .container { max-width: 1200px; margin: auto; padding: 20px; }
-      h3 { color: #bbdefb; font-size: 1.5em; margin-top: 20px; }
-      .panel { background: #1e1e1e; border-radius: 10px; padding: 20px; box-shadow: 0 4px 8px rgba(0,0,0,0.3); margin-bottom: 20px; }
-      .shiny-input-container { margin-bottom: 20px; }
+      .container { max-width: 1500px; margin: auto; padding: 20px; }
+      .week-selector { display: flex; justify-content: center; margin-bottom: 20px; }
+      .panel-row { display: flex; justify-content: space-between; gap: 20px; margin-bottom: 20px; }
+      .panel { background: #1e1e1e; border-radius: 10px; padding: 20px; box-shadow: 0 4px 8px rgba(0,0,0,0.3); flex: 1; }
+      h3 { color: #bbdefb; font-size: 1.5em; margin-top: 0; }
       table { width: 100%; border-collapse: collapse; }
       th, td { padding: 10px; text-align: left; border-bottom: 1px solid #333; }
       th { background: #1976d2; color: #ffffff; }
-      pre { background: #212121; padding: 15px; border-radius: 5px; color: #e0e0e0; }
-      .week-selector { display: flex; justify-content: center; }
       .no-data { color: #ef5350; text-align: center; font-size: 1.2em; }
       .team-logo { width: 40px; height: 40px; vertical-align: middle; margin-right: 10px; }
       .player-section { margin-bottom: 15px; padding: 10px; background: #2a2a2a; border-radius: 5px; }
     "))
   ),
   div(class = "header",
-    h1(HTML("Real Fantasy <span>Football</span>"))
+    h1(HTML("Real Fantasy <span>Football</span> ... Not that Egghand Stuff"))
   ),
   div(class = "container",
     div(class = "week-selector",
       pickerInput("week", "Select Week", choices = 1:5, selected = 1, options = list(style = "btn-primary", width = "200px"))
     ),
-    div(class = "panel",
-      h3("Top 3 Kicker Fantasy Points"),
-      conditionalPanel(
-        condition = "output.topPoints !== undefined && output.topPoints.length > 0",
-        tableOutput("topPoints")
+    div(class = "panel-row",
+      div(class = "panel",
+        h3("Top 3 Kicker Fantasy Points"),
+        conditionalPanel(
+          condition = "output.topPoints !== undefined && output.topPoints.length > 0",
+          tableOutput("topPoints")
+        ),
+        conditionalPanel(
+          condition = "output.topPoints === undefined || output.topPoints.length == 0",
+          div(class = "no-data", "No data available for selected week")
+        )
       ),
-      conditionalPanel(
-        condition = "output.topPoints === undefined || output.topPoints.length == 0",
-        div(class = "no-data", "No data available for selected week")
+      div(class = "panel",
+        h3("Top 3 FG Total Distance"),
+        conditionalPanel(
+          condition = "output.topDist !== undefined && output.topDist.length > 0",
+          tableOutput("topDist")
+        ),
+        conditionalPanel(
+          condition = "output.topDist === undefined || output.topDist.length == 0",
+          div(class = "no-data", "No data available for selected week")
+        )
+      ),
+      div(class = "panel",
+        h3("Top 3 Longest FG"),
+        conditionalPanel(
+          condition = "output.topLong !== undefined && output.topLong.length > 0",
+          tableOutput("topLong")
+        ),
+        conditionalPanel(
+          condition = "output.topLong === undefined || output.topLong.length == 0",
+          div(class = "no-data", "No data available for selected week")
+        )
+      )
+    ),
+    div(class = "panel-row",
+      div(class = "panel",
+        h3("Top 3 Total Punts"),
+        conditionalPanel(
+          condition = "output.topPunts !== undefined && output.topPunts.length > 0",
+          tableOutput("topPunts")
+        ),
+        conditionalPanel(
+          condition = "output.topPunts === undefined || output.topPunts.length == 0",
+          div(class = "no-data", "No data available for selected week")
+        )
+      ),
+      div(class = "panel",
+        h3("Top 3 Punt Yardage"),
+        conditionalPanel(
+          condition = "output.topYardage !== undefined && output.topYardage.length > 0",
+          tableOutput("topYardage")
+        ),
+        conditionalPanel(
+          condition = "output.topYardage === undefined || output.topYardage.length == 0",
+          div(class = "no-data", "No data available for selected week")
+        )
+      ),
+      div(class = "panel",
+        h3("Top 3 Longest Punt"),
+        conditionalPanel(
+          condition = "output.topLongPunt !== undefined && output.topLongPunt.length > 0",
+          tableOutput("topLongPunt")
+        ),
+        conditionalPanel(
+          condition = "output.topLongPunt === undefined || output.topLongPunt.length == 0",
+          div(class = "no-data", "No data available for selected week")
+        )
       )
     ),
     div(class = "panel",
-      h3("Top 3 FG Total Distance"),
+      h3("Team Special Teams Details"),
       conditionalPanel(
-        condition = "output.topDist !== undefined && output.topDist.length > 0",
-        tableOutput("topDist")
+        condition = "output.teamDetails !== undefined",
+        uiOutput("teamDetails")
       ),
       conditionalPanel(
-        condition = "output.topDist === undefined || output.topDist.length == 0",
-        div(class = "no-data", "No data available for selected week")
+        condition = "output.teamDetails === undefined",
+        div(class = "no-data", "No team details available")
       )
-    ),
-    div(class = "panel",
-      h3("Top 3 Longest FG"),
-      conditionalPanel(
-        condition = "output.topLong !== undefined && output.topLong.length > 0",
-        tableOutput("topLong")
-      ),
-      conditionalPanel(
-        condition = "output.topLong === undefined || output.topLong.length == 0",
-        div(class = "no-data", "No data available for selected week")
-      )
-    ),
-    div(class = "panel",
-      h3("Kicker Details"),
-      conditionalPanel(
-        condition = "output.kickerDetails !== undefined",
-        uiOutput("kickerDetails")
-      ),
-      conditionalPanel(
-        condition = "output.kickerDetails === undefined",
-        div(class = "no-data", "No kicker details available")
-      )
-    ),
-    div(class = "panel",
-      h3("Top 3 Total Punts"),
-      conditionalPanel(
-        condition = "output.topPunts !== undefined && output.topPunts.length > 0",
-        tableOutput("topPunts")
-      ),
-      conditionalPanel(
-        condition = "output.topPunts === undefined || output.topPunts.length == 0",
-        div(class = "no-data", "No data available for selected week")
-      )
-    ),
-    div(class = "panel",
-      h3("Top 3 Punt Yardage"),
-      conditionalPanel(
-        condition = "output.topYardage !== undefined && output.topYardage.length > 0",
-        tableOutput("topYardage")
-      ),
-      conditionalPanel(
-        condition = "output.topYardage === undefined || output.topYardage.length == 0",
-        div(class = "no-data", "No data available for selected week")
-      )
-    ),
-    div(class = "panel",
-      h3("Top 3 Longest Punt"),
-      conditionalPanel(
-        condition = "output.topLongPunt !== undefined && output.topLongPunt.length > 0",
-        tableOutput("topLongPunt")
-      ),
-      conditionalPanel(
-        condition = "output.topLongPunt === undefined || output.topLongPunt.length == 0",
-        div(class = "no-data", "No data available for selected week")
-      )
-    ),
-    div(class = "panel",
-      h3("Punter Details"),
-      conditionalPanel(
-        condition = "output.punterDetails !== undefined",
-        uiOutput("punterDetails")
-      ),
-      conditionalPanel(
-        condition = "output.punterDetails === undefined",
-        div(class = "no-data", "No punter details available")
-      )
-    ),
-    tags$hr(),
-    div(style = "text-align: center; color: #888;", "A QB is only as good as his kicker.")
+    )
   )
 )
 
@@ -252,38 +242,6 @@ server <- function(input, output) {
       `colnames<-`(c("Team", "LONG"))
   }, sanitize.text.function = function(x) x, escape = FALSE)
 
-  output$kickerDetails <- renderUI({
-    details <- compute_stats()$kicker_details
-    if (nrow(details) == 0) return(NULL)
-    teams <- unique(details$posteam)
-    lapply(teams, function(team) {
-      team_players <- details %>% filter(posteam == team)
-      team_logo <- tags$img(
-        src = paste0("https://a.espncdn.com/i/teamlogos/nfl/500/", team, ".png"), 
-        class = "team-logo",
-        onerror = "this.style.display='none'"
-      )
-      div(
-        class = "player-section",
-        h4(team_logo, strong(team)),
-        lapply(1:nrow(team_players), function(i) {
-          player <- team_players[i,]
-          tags$p(
-            sprintf(
-              "%s: %d FG made (%s), %d FG missed, %d XP made, %d XP missed",
-              player$kicker_player_name,
-              player$made_fg,
-              paste(player$dists[[1]], collapse = ", "),
-              player$missed_fg,
-              player$made_xp,
-              player$missed_xp
-            )
-          )
-        })
-      )
-    })
-  })
-
   output$topPunts <- renderTable({
     stats <- compute_stats()$punt_team_stats
     if (nrow(stats) == 0) return(NULL)
@@ -338,31 +296,57 @@ server <- function(input, output) {
       `colnames<-`(c("Team", "LONG"))
   }, sanitize.text.function = function(x) x, escape = FALSE)
 
-  output$punterDetails <- renderUI({
-    details <- compute_stats()$punter_details
-    if (nrow(details) == 0) return(NULL)
-    teams <- unique(details$posteam)
+  output$teamDetails <- renderUI({
+    kicker_details <- compute_stats()$kicker_details
+    punter_details <- compute_stats()$punter_details
+    teams <- unique(c(kicker_details$posteam, punter_details$posteam))
+    if (length(teams) == 0) return(NULL)
     lapply(teams, function(team) {
-      team_players <- details %>% filter(posteam == team)
+      team_kickers <- kicker_details %>% filter(posteam == team)
+      team_punters <- punter_details %>% filter(posteam == team)
       team_logo <- tags$img(
         src = paste0("https://a.espncdn.com/i/teamlogos/nfl/500/", team, ".png"), 
         class = "team-logo",
         onerror = "this.style.display='none'"
       )
-      div(
-        class = "player-section",
-        h4(team_logo, strong(team)),
-        lapply(1:nrow(team_players), function(i) {
-          player <- team_players[i,]
+      kicker_content <- if (nrow(team_kickers) > 0) {
+        lapply(1:nrow(team_kickers), function(i) {
+          player <- team_kickers[i,]
           tags$p(
             sprintf(
-              "%s: %d punts (%s yds)",
+              "Kicker %s: %d FG made (%s), %d FG missed, %d XP made, %d XP missed",
+              player$kicker_player_name,
+              player$made_fg,
+              paste(player$dists[[1]], collapse = ", "),
+              player$missed_fg,
+              player$made_xp,
+              player$missed_xp
+            )
+          )
+        })
+      } else {
+        list(tags$p("No kicker data available"))
+      }
+      punter_content <- if (nrow(team_punters) > 0) {
+        lapply(1:nrow(team_punters), function(i) {
+          player <- team_punters[i,]
+          tags$p(
+            sprintf(
+              "Punter %s: %d punts (%s yds)",
               player$punter_player_name,
               player$punts,
               paste(player$dists[[1]], collapse = ", ")
             )
           )
         })
+      } else {
+        list(tags$p("No punter data available"))
+      }
+      div(
+        class = "player-section",
+        h4(team_logo, strong(team)),
+        kicker_content,
+        punter_content
       )
     })
   })
